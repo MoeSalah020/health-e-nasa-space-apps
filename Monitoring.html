@@ -1,0 +1,1250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="description" content="HEALTH-E · Crew Health Monitoring — Interactive physiological dashboard based on NASA Twins Study and ISS Cohorts. Team MYTHs, NASA Space Apps Cairo 2026." />
+<title>HEALTH-E · Crew Health Monitoring — Team MYTHs</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,800&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+
+<style>
+/* ============================================================
+   BIO-ORBIT — Team MYTHs · NASA Space Apps Cairo 2026
+   CREW MONITORING · Interactive Diagnostic Tool
+============================================================ */
+:root {
+  --bg:            #1a1310;
+  --bg-deep:       #0f0a08;
+  --card:          rgba(42, 32, 28, 0.65);
+  --card-strong:   rgba(42, 32, 28, 0.85);
+  --border:        rgba(211, 187, 160, 0.24);
+  --border-soft:   rgba(211, 187, 160, 0.16);
+  --cyan:          #C14424;
+  --mint:          #D3BBA0;
+  --gold:          #C14424;
+  --rose:          #C14424;
+  --text:          #F0E7D4;
+  --text-soft:     #D3BBA0;
+  --muted:         rgba(240, 231, 212, 0.55);
+  --radius-sm:     10px;
+  --radius:        16px;
+  --radius-lg:     24px;
+  --shadow:        0 18px 48px rgba(14, 10, 8, 0.58);
+  --shadow-soft:   0 8px 24px rgba(14, 10, 8, 0.38);
+  --glow-cyan:     0 0 0 1px rgba(193, 68, 36, 0.55), 0 0 28px rgba(193, 68, 36, 0.22);
+  --ease:          cubic-bezier(0.22, 0.61, 0.36, 1);
+  --footer-h:      54px;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  min-height: 100%;
+  color: var(--text);
+  font-family: "Inter", "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+  font-size: 16px;
+  line-height: 1.65;
+  background: var(--bg);
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+  padding-bottom: var(--footer-h);
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  background:
+    radial-gradient(1100px 700px at 78% -10%, rgba(193, 68, 36, 0.16), transparent 62%),
+    radial-gradient(900px 620px at 8% 14%, rgba(123, 63, 58, 0.22), transparent 60%),
+    radial-gradient(800px 800px at 50% 118%, rgba(211, 187, 160, 0.06), transparent 65%),
+    linear-gradient(180deg, var(--bg) 0%, var(--bg-deep) 55%, #080604 100%);
+  pointer-events: none;
+}
+
+img, canvas { display: block; max-width: 100%; }
+
+h1, h2, h3, h4 {
+  margin: 0 0 0.5em;
+  line-height: 1.2;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  color: var(--text);
+}
+p { margin: 0 0 1em; }
+p:last-child { margin-bottom: 0; }
+a { color: var(--cyan); text-decoration: none; }
+a:hover { text-decoration: underline; }
+button { font: inherit; color: inherit; }
+::selection { background: rgba(193, 68, 36, 0.4); color: #F0E7D4; }
+
+* { scrollbar-width: thin; scrollbar-color: rgba(193, 68, 36, 0.35) transparent; }
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: rgba(193, 68, 36, 0.32);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+::-webkit-scrollbar-thumb:hover { background: rgba(193, 68, 36, 0.55); background-clip: content-box; }
+
+/* MODE SWITCH (Text Visibility) */
+body.mode-kid  .adult-copy { display: none !important; }
+body.mode-adult .kid-copy  { display: none !important; }
+
+/* STARFIELD */
+.space-canvas {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+  pointer-events: none;
+}
+
+/* ============================================================
+   GLOBAL UNIFIED TOP BAR
+============================================================ */
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 14px clamp(16px, 4vw, 44px);
+  background: rgba(26, 19, 16, 0.78);
+  backdrop-filter: blur(16px) saturate(140%);
+  -webkit-backdrop-filter: blur(16px) saturate(140%);
+  border-bottom: 1px solid var(--border-soft);
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  color: #F0E7D4;
+}
+.brand:hover { text-decoration: none; }
+.brand-orb {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 32% 30%, #F0E7D4 0%, var(--cyan) 32%, #7B3F3A 78%, var(--bg-deep) 100%);
+  box-shadow: 0 0 16px rgba(193, 68, 36, 0.75), inset 0 0 6px rgba(240, 231, 212, 0.55);
+  flex: 0 0 auto;
+}
+.brand-text {
+  font-weight: 800;
+  font-size: 1.05rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+.brand-text .dot { color: var(--gold); }
+
+.main-nav {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+  flex: 1 1 auto;
+}
+
+.ghost-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 16px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: rgba(193, 68, 36, 0.06);
+  color: var(--text-soft);
+  font-size: 0.88rem;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 0.22s var(--ease), color 0.22s var(--ease),
+              border-color 0.22s var(--ease), transform 0.22s var(--ease);
+}
+.ghost-btn:hover {
+  background: rgba(193, 68, 36, 0.14);
+  border-color: rgba(193, 68, 36, 0.45);
+  color: var(--text);
+  text-decoration: none;
+  transform: translateY(-1px);
+}
+.ghost-btn:active { transform: translateY(0); }
+
+.mode-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: rgba(26, 19, 16, 0.7);
+  cursor: pointer;
+  transition: border-color 0.25s var(--ease), box-shadow 0.25s var(--ease);
+}
+.mode-toggle:hover {
+  border-color: rgba(193, 68, 36, 0.5);
+  box-shadow: var(--glow-cyan);
+}
+.mode-pill {
+  padding: 7px 15px;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  white-space: nowrap;
+  transition: color 0.25s var(--ease), background 0.25s var(--ease),
+              box-shadow 0.25s var(--ease);
+}
+.mode-pill.is-active {
+  color: #0f0a08;
+  background: linear-gradient(135deg, var(--cyan), var(--mint));
+  box-shadow: 0 4px 16px rgba(193, 68, 36, 0.35);
+}
+
+/* BUTTONS */
+.primary-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 14px 28px;
+  border: none;
+  border-radius: 999px;
+  font-size: 0.98rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  color: #0f0a08;
+  cursor: pointer;
+  background: linear-gradient(135deg, var(--cyan) 0%, var(--mint) 100%);
+  box-shadow: 0 10px 30px rgba(193, 68, 36, 0.28);
+  transition: transform 0.22s var(--ease), box-shadow 0.22s var(--ease), filter 0.22s var(--ease);
+}
+.primary-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 16px 40px rgba(193, 68, 36, 0.38);
+  filter: brightness(1.05);
+}
+.primary-btn:active { transform: translateY(0); }
+
+.secondary-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 20px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: rgba(42, 32, 28, 0.5);
+  color: var(--text-soft);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.22s var(--ease), border-color 0.22s var(--ease),
+              color 0.22s var(--ease), transform 0.22s var(--ease);
+}
+.secondary-btn:hover {
+  background: rgba(193, 68, 36, 0.12);
+  border-color: rgba(193, 68, 36, 0.45);
+  color: var(--text);
+  text-decoration: none;
+  transform: translateY(-2px);
+}
+
+/* GLASS CARD */
+.glass-card {
+  position: relative;
+  padding: clamp(20px, 3vw, 30px);
+  border-radius: var(--radius-lg);
+  background: var(--card);
+  border: 1px solid var(--border);
+  backdrop-filter: blur(18px) saturate(150%);
+  -webkit-backdrop-filter: blur(18px) saturate(150%);
+  box-shadow: var(--shadow);
+  transition: transform 0.3s var(--ease), border-color 0.3s var(--ease),
+              box-shadow 0.3s var(--ease);
+}
+.glass-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(150deg, rgba(255, 255, 255, 0.06), transparent 45%);
+  pointer-events: none;
+}
+.glass-card p { color: var(--text-soft); font-size: 0.94rem; }
+
+.eyebrow {
+  display: inline-block;
+  margin: 0 0 16px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--cyan);
+  background: rgba(193, 68, 36, 0.1);
+  border: 1px solid rgba(193, 68, 36, 0.28);
+}
+
+/* ============================================================
+   MONITORING LAYOUT
+============================================================ */
+.mon-layout {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: clamp(24px, 4vw, 44px) clamp(16px, 4vw, 44px) 60px;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(18px, 2.6vw, 28px);
+}
+
+/* INTRO HERO */
+.mon-hero {
+  text-align: center;
+  max-width: 800px;
+  margin: 0 auto 40px;
+}
+.mon-hero h1 {
+  font-family: 'Fraunces', Georgia, serif;
+  font-size: clamp(2rem, 4vw, 3rem);
+  margin-bottom: 16px;
+  line-height: 1.1;
+}
+.mon-hero p {
+  font-size: clamp(1rem, 1.5vw, 1.15rem);
+  color: var(--text-soft);
+  line-height: 1.6;
+}
+
+/* CREW GRID */
+.crew-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+  gap: clamp(20px, 3vw, 30px);
+  margin-top: 20px;
+}
+
+/* CREW CARD */
+.crew-card {
+  position: relative;
+  padding: 30px 24px;
+  border-radius: var(--radius-lg);
+  background: var(--card);
+  border: 1px solid var(--border);
+  backdrop-filter: blur(18px) saturate(150%);
+  -webkit-backdrop-filter: blur(18px) saturate(150%);
+  box-shadow: var(--shadow);
+  cursor: pointer;
+  transition: all 0.3s var(--ease);
+  overflow: hidden;
+  text-align: center;
+}
+.crew-card:hover {
+  transform: translateY(-8px);
+  border-color: rgba(193, 68, 36, 0.6);
+  box-shadow: var(--shadow), var(--glow-cyan);
+}
+
+.crew-avatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: rgba(193, 68, 36, 0.15);
+  border: 2px solid var(--cyan);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  margin: 0 auto 16px;
+  transition: transform 0.3s var(--ease);
+}
+.crew-card:hover .crew-avatar {
+  transform: scale(1.1);
+}
+
+.crew-name {
+  font-size: 1.25rem;
+  font-weight: 800;
+  margin-bottom: 4px;
+  color: var(--text);
+}
+.crew-role {
+  font-size: 0.85rem;
+  color: var(--mint);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 20px;
+  font-weight: 700;
+}
+
+.crew-status-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  margin-bottom: 20px;
+}
+.crew-status-badge.nominal { background: rgba(211, 187, 160, 0.15); color: var(--mint); border: 1px solid rgba(211, 187, 160, 0.3); }
+.crew-status-badge.warning { background: rgba(193, 68, 36, 0.15); color: var(--cyan); border: 1px solid rgba(193, 68, 36, 0.3); }
+.crew-status-badge.critical { background: rgba(193, 68, 36, 0.3); color: #fff; border: 1px solid var(--cyan); }
+
+/* HOVER DETAILS */
+.crew-hover-details {
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+  transition: all 0.4s var(--ease);
+  text-align: left;
+  margin-top: 0;
+  border-top: 1px dashed transparent;
+}
+.crew-card:hover .crew-hover-details {
+  max-height: 250px;
+  opacity: 1;
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top-color: var(--border-soft);
+}
+
+.hover-stat-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.85rem;
+  margin-bottom: 8px;
+  color: var(--text-soft);
+}
+.hover-stat-row strong { color: var(--text); }
+
+.click-hint {
+  font-size: 0.75rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-top: 16px;
+  font-weight: 600;
+}
+
+/* DETAIL VIEW (Hidden initially) */
+.detail-view {
+  display: none;
+  flex-direction: column;
+  gap: clamp(18px, 2.6vw, 28px);
+  animation: fadeIn 0.5s var(--ease);
+}
+.detail-view.active {
+  display: flex;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.detail-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 10px;
+}
+.detail-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.detail-title-wrap h2 {
+  margin: 0;
+  font-size: clamp(1.5rem, 3vw, 2rem);
+}
+.detail-title-wrap p {
+  margin: 0;
+  color: var(--mint);
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+/* STAT CARDS (RESULTS) */
+.mon-stats {
+  display: grid;
+  gap: clamp(12px, 2vw, 18px);
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr));
+}
+.stat-card {
+  padding: 16px 20px;
+  border-radius: var(--radius);
+  background: var(--card);
+  border: 1px solid var(--border);
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  box-shadow: var(--shadow-soft);
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.3s var(--ease), box-shadow 0.3s var(--ease);
+}
+.stat-card.is-elevated {
+  border-color: rgba(193, 68, 36, 0.5);
+  box-shadow: var(--shadow), var(--glow-cyan);
+}
+.stat-label {
+  display: block;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+  min-height: 14px;
+}
+.stat-value {
+  display: block;
+  margin-top: 6px;
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+}
+.stat-unit {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--muted);
+}
+.stat-card .status-badge {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  font-size: 0.65rem;
+  font-weight: 800;
+  padding: 3px 8px;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.status-good { background: rgba(211, 187, 160, 0.15); color: var(--mint); border: 1px solid rgba(211, 187, 160, 0.3); }
+.status-warn { background: rgba(193, 68, 36, 0.15); color: var(--cyan); border: 1px solid rgba(193, 68, 36, 0.3); }
+.status-crit { background: rgba(193, 68, 36, 0.3); color: #fff; border: 1px solid var(--cyan); animation: pulseCrit 1.5s infinite; }
+
+@keyframes pulseCrit {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+/* CHARTS */
+.mon-charts {
+  display: grid;
+  gap: clamp(14px, 2vw, 20px);
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+}
+.chart-card {
+  padding: 16px 20px 12px;
+  border-radius: var(--radius);
+  background: var(--card);
+  border: 1px solid var(--border);
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  box-shadow: var(--shadow-soft);
+}
+.chart-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.chart-head h4 {
+  margin: 0;
+  font-size: 0.86rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  color: var(--text-soft);
+}
+.chart-unit {
+  font-size: 0.7rem;
+  color: var(--muted);
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.chart-canvas {
+  width: 100%;
+  height: clamp(140px, 18vw, 172px);
+  display: block;
+}
+
+/* ALERTS & COUNTERMEASURES */
+.alert-card {
+  padding: 20px 24px;
+  border-radius: var(--radius);
+  background: var(--card);
+  border: 1px solid var(--border);
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  box-shadow: var(--shadow-soft);
+}
+.alert-card h3 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1rem;
+  margin-bottom: 12px;
+}
+.alert-card h3::before {
+  content: '⚕';
+  color: var(--cyan);
+  font-size: 1.2rem;
+}
+.alert-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.alert-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 14px 16px;
+  border-radius: var(--radius-sm);
+  background: rgba(26, 19, 16, 0.55);
+  border: 1px solid var(--border-soft);
+  border-left: 4px solid var(--mint);
+  font-size: 0.9rem;
+  transition: all 0.3s var(--ease);
+}
+.alert-item.is-warning { border-left-color: var(--cyan); background: rgba(193, 68, 36, 0.08); }
+.alert-item.is-critical { border-left-color: var(--cyan); background: rgba(193, 68, 36, 0.15); }
+
+.alert-icon { font-size: 1.2rem; line-height: 1.2; }
+.alert-content strong { display: block; color: var(--text); margin-bottom: 2px; }
+.alert-content span { color: var(--text-soft); font-size: 0.85rem; }
+
+/* COPYRIGHT BAR */
+.copyright-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 70;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  min-height: var(--footer-h);
+  padding: 10px 16px;
+  font-size: 0.78rem;
+  letter-spacing: 0.02em;
+  color: var(--muted);
+  text-align: center;
+  background: rgba(15, 10, 8, 0.92);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-top: 1px solid var(--border-soft);
+}
+.copyright-bar strong { color: var(--cyan); font-weight: 700; }
+
+/* RESPONSIVE */
+@media (max-width: 720px) {
+  body { font-size: 15px; }
+  .topbar { padding: 10px 14px; gap: 10px; }
+  .brand-text { font-size: 0.95rem; letter-spacing: 0.12em; }
+  .mon-topbar-title { display: none; }
+  .copyright-bar { font-size: 0.7rem; padding: 8px 12px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+  .ghost-btn:hover, .primary-btn:hover, .secondary-btn:hover { transform: none; }
+}
+:focus-visible {
+  outline: 2px solid var(--cyan);
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+</style>
+</head>
+
+<body class="mode-kid">
+
+<canvas id="space-canvas" class="space-canvas" aria-hidden="true"></canvas>
+
+<!-- ============================================================
+     GLOBAL UNIFIED TOP BAR
+============================================================ -->
+<header class="topbar">
+  <a class="brand" href="index.html" aria-label="HEALTH-E home">
+    <span class="brand-orb"></span>
+    <span class="brand-text">HEALTH<span class="dot">-</span>E</span>
+  </a>
+
+  <nav class="main-nav" aria-label="Primary navigation">
+    <a class="ghost-btn" href="index.html#about">About us</a>
+    <a class="ghost-btn" href="index.html#story">Storytelling</a>
+    <a class="ghost-btn" href="Monitoring.html">Monitoring</a>
+    <a class="ghost-btn" href="Analysis.html">Analysis</a>
+  </nav>
+
+  <div class="topbar-actions">
+    <button class="mode-toggle" type="button" data-mode-toggle aria-label="Toggle reading mode">
+      <span class="mode-pill is-active" data-mode-pill="kid">Curious</span>
+      <span class="mode-pill" data-mode-pill="adult">Researcher</span>
+    </button>
+  </div>
+</header>
+
+<!-- ============================================================
+     MONITORING PAGE
+============================================================ -->
+<main class="mon-layout">
+
+  <!-- HERO / INTRO -->
+  <section class="mon-hero">
+    <p class="eyebrow">ECLSS Real-Time Telemetry</p>
+    <h1>Astronaut Health &amp; Environment Monitor.</h1>
+    <p class="kid-copy">
+      We extract real-time biometrics straight out of NASA's ECLSS's SENSORS — including blood pressure, heart rate, blood sugar, body temperature, daily sleep hours, and behavioural analysis like mood and hormones.
+    </p>
+    <p class="adult-copy">
+      Continuous ECLSS telemetry acquisition of crew physiological parameters. Data streams include hemodynamic metrics (BP, HR), metabolic indicators (blood glucose, core temperature), circadian rhythm tracking (sleep duration), and neuroendocrine/behavioral biomarker analysis.
+    </p>
+  </section>
+
+  <!-- CREW GRID (Landing State) -->
+  <div class="crew-grid" id="crew-grid">
+    <!-- Cards injected via JS -->
+  </div>
+
+  <!-- DETAIL VIEW (Hidden initially) -->
+  <div class="detail-view" id="detail-view">
+    
+    <div class="detail-header">
+      <div class="detail-title-wrap">
+        <div class="crew-avatar" id="detail-avatar">👨‍🚀</div>
+        <div>
+          <h2 id="detail-name">Astronaut Name</h2>
+          <p id="detail-role">Role</p>
+        </div>
+      </div>
+      <button class="secondary-btn" id="btn-back-to-crew">← Back to Crew</button>
+    </div>
+
+    <!-- STATS GRID -->
+    <div class="mon-stats">
+      <div class="stat-card" id="card-hr">
+        <span class="stat-label kid-copy">Resting Heart Rate</span>
+        <span class="stat-label adult-copy">Resting HR</span>
+        <span class="stat-value" id="val-hr">--</span><span class="stat-unit">bpm</span>
+        <span class="status-badge status-good" id="badge-hr">Nominal</span>
+      </div>
+      <div class="stat-card" id="card-onsd">
+        <span class="stat-label kid-copy">Optic Nerve (ONSD)</span>
+        <span class="stat-label adult-copy">Optic Nerve Sheath Diameter</span>
+        <span class="stat-value" id="val-onsd">--</span><span class="stat-unit">mm</span>
+        <span class="status-badge status-good" id="badge-onsd">Normal</span>
+      </div>
+      <div class="stat-card" id="card-ca">
+        <span class="stat-label kid-copy">Urinary Calcium</span>
+        <span class="stat-label adult-copy">Urinary Ca Excretion</span>
+        <span class="stat-value" id="val-ca">--</span><span class="stat-unit">mg/day</span>
+        <span class="status-badge status-good" id="badge-ca">Safe</span>
+      </div>
+      <div class="stat-card" id="card-sleep">
+        <span class="stat-label kid-copy">Daily Sleep</span>
+        <span class="stat-label adult-copy">Total Sleep Time</span>
+        <span class="stat-value" id="val-sleep">--</span><span class="stat-unit">hrs</span>
+        <span class="status-badge status-good" id="badge-sleep">Adequate</span>
+      </div>
+    </div>
+
+    <!-- CHARTS -->
+    <div class="mon-charts">
+      <div class="chart-card">
+        <div class="chart-head">
+          <h4 class="kid-copy">Cardiovascular &amp; Fluid</h4>
+          <h4 class="adult-copy">Hemodynamic &amp; Fluid Balance</h4>
+          <span class="chart-unit">HR / Mass Δ</span>
+        </div>
+        <canvas id="chart-cardio" class="chart-canvas"></canvas>
+      </div>
+      <div class="chart-card">
+        <div class="chart-head">
+          <h4 class="kid-copy">Neuro-Ocular (SANS)</h4>
+          <h4 class="adult-copy">Neuro-Ocular Remodeling (SANS)</h4>
+          <span class="chart-unit">ONSD / Retinal Δ</span>
+        </div>
+        <canvas id="chart-sans" class="chart-canvas"></canvas>
+      </div>
+      <div class="chart-card">
+        <div class="chart-head">
+          <h4 class="kid-copy">Musculoskeletal</h4>
+          <h4 class="adult-copy">Bone Metabolism &amp; Musculoskeletal</h4>
+          <span class="chart-unit">Calcium / CTX / ARED</span>
+        </div>
+        <canvas id="chart-bone" class="chart-canvas"></canvas>
+      </div>
+      <div class="chart-card">
+        <div class="chart-head">
+          <h4 class="kid-copy">Circadian &amp; Cognitive</h4>
+          <h4 class="adult-copy">Circadian &amp; Neurocognitive Performance</h4>
+          <span class="chart-unit">Sleep / PVT / Cortisol</span>
+        </div>
+        <canvas id="chart-cog" class="chart-canvas"></canvas>
+      </div>
+    </div>
+
+    <!-- ALERTS & COUNTERMEASURES -->
+    <div class="glass-card">
+      <h3 style="display:flex; align-items:center; gap:10px; margin-bottom:16px;">
+        <span style="color:var(--cyan); font-size:1.2rem;">⚕</span> Autonomous Countermeasure Protocol
+      </h3>
+      <ul class="alert-list" id="alert-list">
+        <!-- Populated by JS -->
+      </ul>
+    </div>
+
+  </div>
+
+</main>
+
+<footer class="copyright-bar">
+  © 2026 <strong>Team MYTHs</strong> — NASA Space Apps Cairo 2026 · Astronauts Health Challenge
+</footer>
+
+<!-- ============================================================
+     APP SCRIPT
+============================================================ -->
+<script>
+(function () {
+  'use strict';
+
+  /* ============================================================
+     0. STARFIELD
+  ============================================================ */
+  (function initStarfield() {
+    const canvas = document.getElementById('space-canvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    let stars = [];
+    let w = 0, h = 0;
+
+    function resize() {
+      w = canvas.width  = canvas.clientWidth  * Math.min(window.devicePixelRatio || 1, 2);
+      h = canvas.height = canvas.clientHeight * Math.min(window.devicePixelRatio || 1, 2);
+      const count = Math.min(220, Math.round((w * h) / 14000));
+      stars = [];
+      for (let i = 0; i < count; i++) {
+        stars.push({
+          x: Math.random() * w,
+          y: Math.random() * h,
+          r: Math.random() * 1.4 + 0.3,
+          a: Math.random() * 0.6 + 0.2,
+          tw: Math.random() * 0.02 + 0.004,
+          ph: Math.random() * Math.PI * 2
+        });
+      }
+    }
+
+    function tick(t) {
+      ctx.clearRect(0, 0, w, h);
+      for (const s of stars) {
+        const alpha = s.a + Math.sin(t * s.tw + s.ph) * 0.18;
+        ctx.beginPath();
+        ctx.fillStyle = 'rgba(240, 231, 212, ' + Math.max(0.05, alpha) + ')';
+        ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      requestAnimationFrame(tick);
+    }
+
+    window.addEventListener('resize', resize);
+    resize();
+    requestAnimationFrame(tick);
+  })();
+
+  /* ============================================================
+     1. MODE TOGGLE
+  ============================================================ */
+  function setMode(mode) {
+    document.body.classList.toggle('mode-kid', mode === 'kid');
+    document.body.classList.toggle('mode-adult', mode === 'adult');
+    document.querySelectorAll('[data-mode-toggle]').forEach((btn) => {
+      btn.querySelectorAll('[data-mode-pill]').forEach((pill) => {
+        pill.classList.toggle('is-active', pill.dataset.modePill === mode);
+      });
+    });
+
+    // SAVE TO LOCAL STORAGE
+    localStorage.setItem('healthEMode', mode);
+  }
+
+  document.querySelectorAll('[data-mode-toggle]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      setMode(document.body.classList.contains('mode-kid') ? 'adult' : 'kid');
+    });
+  });
+
+  /* ============================================================
+     2. DATA FOR 3 ASTRONAUTS
+  ============================================================ */
+  const crewData = [
+    {
+      id: 'ast-01',
+      name: 'Cmdr. Sarah Jenkins',
+      role: 'Mission Commander',
+      avatar: '👩‍🚀',
+      status: 'Nominal',
+      statusClass: 'nominal',
+      hr: 62, bp: '115/75', sugar: 95, temp: 36.6, sleep: 7.2, cortisol: 5.5, 
+      mass: -0.2, onsd: 4.5, retinal: 10, calcium: 180, ctx: 40, ared: 98, pvt: 210
+    },
+    {
+      id: 'ast-02',
+      name: 'Pilot Alex Rivera',
+      role: 'Flight Engineer',
+      avatar: '👨‍🚀',
+      status: 'Warning',
+      statusClass: 'warning',
+      hr: 88, bp: '125/82', sugar: 110, temp: 37.1, sleep: 5.2, cortisol: 11.5,
+      mass: -1.2, onsd: 5.8, retinal: 45, calcium: 240, ctx: 85, ared: 86, pvt: 310
+    },
+    {
+      id: 'ast-03',
+      name: 'Dr. Li Wei',
+      role: 'Mission Specialist',
+      avatar: '🧑‍🚀',
+      status: 'Critical',
+      statusClass: 'critical',
+      hr: 98, bp: '92/58', sugar: 145, temp: 38.2, sleep: 4.5, cortisol: 14.2,
+      mass: -2.8, onsd: 6.9, retinal: 65, calcium: 320, ctx: 135, ared: 72, pvt: 380
+    }
+  ];
+
+  /* ============================================================
+     3. RENDER CREW CARDS (Landing State)
+  ============================================================ */
+  function renderCrewCards() {
+    const grid = document.getElementById('crew-grid');
+    grid.innerHTML = crewData.map(ast => `
+      <div class="crew-card" data-id="${ast.id}">
+        <div class="crew-avatar">${ast.avatar}</div>
+        <div class="crew-name">${ast.name}</div>
+        <div class="crew-role">${ast.role}</div>
+        
+        <div class="crew-status-badge ${ast.statusClass}">${ast.status}</div>
+        
+        <div class="crew-hover-details">
+          <div class="hover-stat-row kid-copy"><span>Heart Rate</span><strong>${ast.hr} bpm</strong></div>
+          <div class="hover-stat-row adult-copy"><span>Resting HR</span><strong>${ast.hr} bpm</strong></div>
+          
+          <div class="hover-stat-row kid-copy"><span>Blood Sugar</span><strong>${ast.sugar} mg/dL</strong></div>
+          <div class="hover-stat-row adult-copy"><span>Blood Glucose</span><strong>${ast.sugar} mg/dL</strong></div>
+          
+          <div class="hover-stat-row kid-copy"><span>Sleep</span><strong>${ast.sleep} hrs</strong></div>
+          <div class="hover-stat-row adult-copy"><span>Sleep Duration</span><strong>${ast.sleep} hrs</strong></div>
+          
+          <div class="hover-stat-row kid-copy"><span>Core Temp</span><strong>${ast.temp} °C</strong></div>
+          <div class="hover-stat-row adult-copy"><span>Core Temp</span><strong>${ast.temp} °C</strong></div>
+        </div>
+        
+        <div class="click-hint">Click to view full health report →</div>
+      </div>
+    `).join('');
+
+    // Add click listeners
+    document.querySelectorAll('.crew-card').forEach(card => {
+      card.addEventListener('click', () => {
+        const id = card.dataset.id;
+        const astronaut = crewData.find(a => a.id === id);
+        openDetailView(astronaut);
+      });
+    });
+  }
+
+  /* ============================================================
+     4. DETAIL VIEW LOGIC
+  ============================================================ */
+  function openDetailView(astronaut) {
+    // Switch views
+    document.getElementById('crew-grid').style.display = 'none';
+    document.querySelector('.mon-hero').style.display = 'none';
+    
+    const detailView = document.getElementById('detail-view');
+    detailView.classList.add('active');
+
+    // Populate Header
+    document.getElementById('detail-avatar').textContent = astronaut.avatar;
+    document.getElementById('detail-name').textContent = astronaut.name;
+    document.getElementById('detail-role').textContent = astronaut.role;
+
+    // Run Diagnostics & Populate Stats
+    evaluateHealth(astronaut);
+  }
+
+  document.getElementById('btn-back-to-crew').addEventListener('click', () => {
+    document.getElementById('detail-view').classList.remove('active');
+    document.getElementById('crew-grid').style.display = 'grid';
+    document.querySelector('.mon-hero').style.display = 'block';
+  });
+
+  /* ============================================================
+     5. DIAGNOSTIC & UI UPDATES
+  ============================================================ */
+  function updateBadge(id, level, text) {
+    const el = document.getElementById(id);
+    el.className = 'status-badge ' + (level === 'crit' ? 'status-crit' : (level === 'warn' ? 'status-warn' : 'status-good'));
+    el.textContent = text;
+  }
+
+  function setCardAlert(cardId, isAlert) {
+    const card = document.getElementById(cardId);
+    if (isAlert) card.classList.add('is-elevated');
+    else card.classList.remove('is-elevated');
+  }
+
+  function evaluateHealth(data) {
+    // --- 1. Update Top Stat Cards ---
+    
+    // Cardio
+    document.getElementById('val-hr').textContent = data.hr;
+    let hrStatus = 'good', hrText = 'Nominal', hrAlert = false;
+    if (data.hr > 100 || data.hr < 50) { hrStatus = 'crit'; hrText = 'Critical'; hrAlert = true; }
+    else if (data.hr > 90) { hrStatus = 'warn'; hrText = 'Elevated'; hrAlert = true; }
+    updateBadge('badge-hr', hrStatus, hrText);
+    setCardAlert('card-hr', hrAlert);
+
+    // SANS
+    document.getElementById('val-onsd').textContent = data.onsd;
+    let sansStatus = 'good', sansText = 'Normal', sansAlert = false;
+    if (data.onsd > 6.0 || data.retinal > 50) { sansStatus = 'crit'; sansText = 'SANS Alert'; sansAlert = true; }
+    else if (data.onsd > 5.0 || data.retinal > 20) { sansStatus = 'warn'; sansText = 'Watch'; sansAlert = true; }
+    updateBadge('badge-onsd', sansStatus, sansText);
+    setCardAlert('card-onsd', sansAlert);
+
+    // Bone
+    document.getElementById('val-ca').textContent = data.calcium;
+    let boneStatus = 'good', boneText = 'Safe', boneAlert = false;
+    if (data.calcium > 250) { boneStatus = 'crit'; boneText = 'Stone Risk'; boneAlert = true; }
+    else if (data.calcium > 200) { boneStatus = 'warn'; boneText = 'Monitor'; boneAlert = true; }
+    updateBadge('badge-ca', boneStatus, boneText);
+    setCardAlert('card-ca', boneAlert);
+
+    // Sleep
+    document.getElementById('val-sleep').textContent = data.sleep;
+    let sleepStatus = 'good', sleepText = 'Adequate', sleepAlert = false;
+    if (data.sleep < 5.0) { sleepStatus = 'crit'; sleepText = 'Severe Debt'; sleepAlert = true; }
+    else if (data.sleep < 7.0) { sleepStatus = 'warn'; sleepText = 'Low'; sleepAlert = true; }
+    updateBadge('badge-sleep', sleepStatus, sleepText);
+    setCardAlert('card-sleep', sleepAlert);
+
+    // --- 2. Generate Alerts ---
+    const alertList = document.getElementById('alert-list');
+    alertList.innerHTML = '';
+    let hasAlerts = false;
+
+    if (data.onsd > 6.0 || data.retinal > 50) {
+      hasAlerts = true;
+      alertList.innerHTML += `
+        <li class="alert-item is-critical">
+          <span class="alert-icon">🚨</span>
+          <div class="alert-content">
+            <strong class="kid-copy">Neuro-Ocular Syndrome (SANS) Management</strong>
+            <strong class="adult-copy">Spaceflight Associated Neuro-ocular Syndrome (SANS) Protocol</strong>
+            <span class="kid-copy">ONSD exceeds 6.0 mm or Retinal Thickness is elevated. Issue corrective Space Anticipation Glasses, initiate daily Lower Body Negative Pressure (LBNP) or mechanical thigh cuffs (Braslet) to sequester fluid in the lower extremities, and verify cabin CO₂ partial pressure remains below 2.5 mmHg.</span>
+            <span class="adult-copy">ONSD > 6.0 mm or retinal thickening detected. Initiate Space Anticipation Glasses, daily LBNP or Braslet countermeasures, and maintain ppCO₂ < 2.5 mmHg to mitigate intracranial pressure.</span>
+          </div>
+        </li>`;
+    }
+
+    if (data.hr > 90 || data.mass < -2.0) {
+      hasAlerts = true;
+      alertList.innerHTML += `
+        <li class="alert-item is-critical">
+          <span class="alert-icon">💧</span>
+          <div class="alert-content">
+            <strong class="kid-copy">Orthostatic &amp; Hypovolemic Protection</strong>
+            <strong class="adult-copy">Orthostatic &amp; Hypovolemic Countermeasures</strong>
+            <span class="kid-copy">Acute body mass loss (> 2.0%) or resting tachycardia detected. Trigger immediate oral isotonic salt-and-fluid loading (1.0 L electrolyte solution) alongside daily CEVIS aerobic ergometer training at 75-85% HRmax.</span>
+            <span class="adult-copy">Hypovolemia (mass loss > 2.0%) or resting tachycardia identified. Administer 1.0 L isotonic saline, initiate CEVIS ergometer at 75-85% HRmax, and monitor orthostatic tolerance.</span>
+          </div>
+        </li>`;
+    }
+
+    if (data.calcium > 250 || data.ctx > 100 || data.ared < 85) {
+      hasAlerts = true;
+      alertList.innerHTML += `
+        <li class="alert-item is-warning">
+          <span class="alert-icon">🦴</span>
+          <div class="alert-content">
+            <strong class="kid-copy">Bone Matrix &amp; Renal Stone Prophylaxis</strong>
+            <strong class="adult-copy">Bone Demineralization &amp; Renal Stone Prophylaxis</strong>
+            <span class="kid-copy">Hypercalciuria (> 250 mg/day) or reduced ARED workload. Maintain high-load axial resistance exercise on the Advanced Resistive Exercise Device (ARED), increase fluid intake by +750 mL/day, and administer potassium citrate (20 mEq BID) to prevent calcium oxalate crystallization.</span>
+            <span class="adult-copy">Hypercalciuria (> 250 mg/day) or decreased ARED compliance. Mandate high-load ARED exercise, increase fluid intake (+750 mL/day), and administer potassium citrate (20 mEq BID) to inhibit calcium oxalate crystallization.</span>
+          </div>
+        </li>`;
+    }
+
+    if (data.sleep < 5.0 || data.pvt > 350 || data.cortisol > 12.0) {
+      hasAlerts = true;
+      alertList.innerHTML += `
+        <li class="alert-item is-warning">
+          <span class="alert-icon">🌙</span>
+          <div class="alert-content">
+            <strong class="kid-copy">Circadian &amp; Immune Stabilization</strong>
+            <strong class="adult-copy">Circadian Rhythm &amp; Immune Stabilization</strong>
+            <span class="kid-copy">Sleep durations below 5.0 hours or PVT reaction lapses (≥ 5 lapses ≥ 500 ms) detected. Defer safety-critical robotics/EVA, apply 6500K blue-enriched wake lighting, and monitor salivary cortisol alongside latent herpesvirus reactivation.</span>
+            <span class="adult-copy">Sleep deprivation (< 5.0 hrs) or PVT lapses (≥ 5 lapses ≥ 500 ms). Defer critical EVA/robotics, utilize 6500K blue-enriched phototherapy, and monitor salivary cortisol and viral reactivation (EBV/VZV).</span>
+          </div>
+        </li>`;
+    }
+
+    if (!hasAlerts) {
+      alertList.innerHTML = `
+        <li class="alert-item">
+          <span class="alert-icon">✅</span>
+          <div class="alert-content">
+            <strong class="kid-copy">All Systems Nominal</strong>
+            <strong class="adult-copy">Physiological Baseline Nominal</strong>
+            <span class="kid-copy">Physiological metrics are within safe NASA-STD-3001 ranges. No autonomous countermeasures required at this time. Continue routine monitoring and maintain current exercise and sleep schedule.</span>
+            <span class="adult-copy">All measured physiological parameters remain within NASA-STD-3001 operational thresholds. No autonomous interventions required. Maintain standard countermeasure compliance (ARED, CEVIS, sleep hygiene).</span>
+          </div>
+        </li>`;
+    }
+
+    // --- 3. Draw Charts ---
+    drawCharts(data);
+  }
+
+  /* ============================================================
+     6. CHART ENGINE
+  ============================================================ */
+  function drawCharts(data) {
+    drawBarChart('chart-cardio', [
+      { label: 'HR', value: data.hr, max: 120, unit: 'bpm', color: data.hr > 90 ? '#C14424' : '#D3BBA0' },
+      { label: 'Mass Δ', value: Math.abs(data.mass), max: 5, unit: '%', color: Math.abs(data.mass) > 2 ? '#C14424' : '#D3BBA0' }
+    ]);
+
+    drawBarChart('chart-sans', [
+      { label: 'ONSD', value: data.onsd, max: 8, unit: 'mm', color: data.onsd > 6 ? '#C14424' : '#D3BBA0' },
+      { label: 'Retinal', value: data.retinal, max: 80, unit: 'µm', color: data.retinal > 50 ? '#C14424' : '#D3BBA0' }
+    ]);
+
+    drawBarChart('chart-bone', [
+      { label: 'Calcium', value: data.calcium, max: 350, unit: 'mg', color: data.calcium > 250 ? '#C14424' : '#D3BBA0' },
+      { label: 'CTX', value: data.ctx, max: 150, unit: '%', color: data.ctx > 100 ? '#C14424' : '#D3BBA0' },
+      { label: 'ARED', value: data.ared, max: 100, unit: '%', color: data.ared < 85 ? '#C14424' : '#D3BBA0', inverse: true }
+    ]);
+
+    drawBarChart('chart-cog', [
+      { label: 'Sleep', value: data.sleep, max: 10, unit: 'hrs', color: data.sleep < 5 ? '#C14424' : '#D3BBA0', inverse: true },
+      { label: 'PVT', value: data.pvt, max: 400, unit: 'ms', color: data.pvt > 350 ? '#C14424' : '#D3BBA0' },
+      { label: 'Cortisol', value: data.cortisol, max: 15, unit: 'ng/mL', color: data.cortisol > 12 ? '#C14424' : '#D3BBA0' }
+    ]);
+  }
+
+  function drawBarChart(canvasId, bars) {
+    const canvas = document.getElementById(canvasId);
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const rect = canvas.getBoundingClientRect();
+    canvas.width = rect.width * dpr;
+    canvas.height = rect.height * dpr;
+    ctx.scale(dpr, dpr);
+
+    const w = rect.width;
+    const h = rect.height;
+    ctx.clearRect(0, 0, w, h);
+
+    const padL = 10, padR = 10, padT = 10, padB = 30;
+    const innerW = w - padL - padR;
+    const innerH = h - padT - padB;
+
+    const barW = Math.min(40, innerW / bars.length * 0.6);
+    const gap = (innerW - (barW * bars.length)) / (bars.length + 1);
+
+    // Draw baseline
+    ctx.beginPath();
+    ctx.strokeStyle = 'rgba(211, 187, 160, 0.2)';
+    ctx.lineWidth = 1;
+    ctx.moveTo(padL, padT + innerH);
+    ctx.lineTo(w - padR, padT + innerH);
+    ctx.stroke();
+
+    bars.forEach((bar, i) => {
+      const x = padL + gap + i * (barW + gap);
+      const ratio = Math.min(1, bar.value / bar.max);
+      const barH = innerH * ratio;
+      const y = padT + innerH - barH;
+
+      // Bar
+      ctx.beginPath();
+      ctx.fillStyle = bar.color;
+      ctx.roundRect(x, y, barW, barH, 4);
+      ctx.fill();
+
+      // Value text
+      ctx.fillStyle = '#F0E7D4';
+      ctx.font = 'bold 11px Inter, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(bar.value + ' ' + bar.unit, x + barW / 2, y - 6);
+
+      // Label text
+      ctx.fillStyle = 'rgba(211, 187, 160, 0.8)';
+      ctx.font = '10px Inter, sans-serif';
+      ctx.fillText(bar.label, x + barW / 2, h - 8);
+    });
+  }
+
+  /* ============================================================
+     7. INIT
+  ============================================================ */
+  window.addEventListener('resize', () => {
+    const detailView = document.getElementById('detail-view');
+    if (detailView.classList.contains('active')) {
+      // Find which astronaut is currently active based on the name
+      const activeName = document.getElementById('detail-name').textContent;
+      const activeAst = crewData.find(a => a.name === activeName);
+      if (activeAst) drawCharts(activeAst);
+    }
+  });
+
+  // Initial render
+  const savedMode = localStorage.getItem('healthEMode') || 'kid';
+  setMode(savedMode);
+  renderCrewCards();
+
+})();
+</script>
+</body>
+</html>

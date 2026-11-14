@@ -1,0 +1,4151 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="description"
+    content="HEALTH-E — an interactive journey through the human body in space. Three views: Earth baseline, 7-stage simulator, and a three-act scrollytelling story. Built by Team MYTHs for NASA Space Apps Cairo 2026." />
+  <title>HEALTH-E · Team MYTHs</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,800&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap"
+    rel="stylesheet">
+
+  <style>
+    /* ============================================================
+   BIO-ORBIT — Team MYTHs · NASA Space Apps Cairo 2026
+   Warm palette (shared across all views)
+============================================================ */
+    :root {
+      /* Palette (index-compatible names) */
+      --bg: #1a1310;
+      --bg-deep: #0f0a08;
+      --card: rgba(42, 32, 28, 0.65);
+      --card-strong: rgba(42, 32, 28, 0.85);
+      --border: rgba(211, 187, 160, 0.24);
+      --border-soft: rgba(211, 187, 160, 0.16);
+      --cyan: #C14424;
+      --mint: #D3BBA0;
+      --gold: #C14424;
+      --text: #F0E7D4;
+      --text-soft: #D3BBA0;
+      --muted: rgba(240, 231, 212, 0.55);
+      --radius-sm: 10px;
+      --radius: 16px;
+      --radius-lg: 24px;
+      --shadow: 0 18px 48px rgba(14, 10, 8, 0.58);
+      --shadow-soft: 0 8px 24px rgba(14, 10, 8, 0.38);
+      --glow-cyan: 0 0 0 1px rgba(193, 68, 36, 0.55), 0 0 28px rgba(193, 68, 36, 0.22);
+      --ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+      --footer-h: 54px;
+
+      /* Palette (story-compatible names) */
+      --clay: #7B3F3A;
+      --rust: #C14424;
+      --rust-soft: rgba(193, 68, 36, 0.55);
+      --sand: #D3BBA0;
+      --cream: #F0E7D4;
+      --cream-dim: rgba(240, 231, 212, 0.65);
+      --rule: rgba(211, 187, 160, 0.18);
+      --display: 'Fraunces', Georgia, serif;
+      --body: 'Inter', system-ui, sans-serif;
+      --mono: 'JetBrains Mono', monospace;
+    }
+
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+      -webkit-text-size-adjust: 100%;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100%;
+      color: var(--text);
+      font-family: "Inter", "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+      font-size: 16px;
+      line-height: 1.65;
+      background: var(--bg);
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+      padding-bottom: var(--footer-h);
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      z-index: -2;
+      background:
+        radial-gradient(1100px 700px at 78% -10%, rgba(193, 68, 36, 0.16), transparent 62%),
+        radial-gradient(900px 620px at 8% 14%, rgba(123, 63, 58, 0.22), transparent 60%),
+        radial-gradient(800px 800px at 50% 118%, rgba(211, 187, 160, 0.06), transparent 65%),
+        linear-gradient(180deg, var(--bg) 0%, var(--bg-deep) 55%, #080604 100%);
+      pointer-events: none;
+    }
+
+    img,
+    canvas {
+      display: block;
+      max-width: 100%;
+    }
+
+    h1,
+    h2,
+    h3,
+    h4 {
+      margin: 0 0 0.5em;
+      line-height: 1.2;
+      font-weight: 700;
+      letter-spacing: -0.015em;
+      color: #F0E7D4;
+    }
+
+    p {
+      margin: 0 0 1em;
+    }
+
+    p:last-child {
+      margin-bottom: 0;
+    }
+
+    a {
+      color: var(--cyan);
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    button {
+      font: inherit;
+      color: inherit;
+    }
+
+    ::selection {
+      background: rgba(193, 68, 36, 0.4);
+      color: #F0E7D4;
+    }
+
+    * {
+      scrollbar-width: thin;
+      scrollbar-color: rgba(193, 68, 36, 0.35) transparent;
+    }
+
+    ::-webkit-scrollbar {
+      width: 10px;
+      height: 10px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: rgba(193, 68, 36, 0.32);
+      border-radius: 999px;
+      border: 2px solid transparent;
+      background-clip: content-box;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(193, 68, 36, 0.55);
+      background-clip: content-box;
+    }
+
+    /* ============================================================
+   VIEW ROUTER
+============================================================ */
+    .view {
+      display: none;
+    }
+
+    body.view-landing #view-landing {
+      display: block;
+    }
+
+    body.view-journey #view-journey {
+      display: block;
+    }
+
+    body.view-story #view-story {
+      display: block;
+    }
+
+    /* Story view body typography tweak */
+    body.view-story {
+      font-size: 17px;
+      line-height: 1.7;
+    }
+
+    /* Shared ambient canvas visibility */
+    .space-canvas {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -1;
+      pointer-events: none;
+    }
+
+    body.view-journey .space-canvas,
+    body.view-story .space-canvas {
+      display: none;
+    }
+
+    /* Hide index copyright bar on story view */
+    body.view-story .copyright-bar {
+      display: none;
+    }
+
+    /* MODE SWITCH (copy visibility) */
+    body.mode-kid .adult-copy {
+      display: none !important;
+    }
+
+    body.mode-adult .kid-copy {
+      display: none !important;
+    }
+
+    body.mode-kid .science-copy {
+      display: none;
+    }
+
+    body.mode-science .kid-copy {
+      display: none;
+    }
+
+    /* ============================================================
+   GLOBAL UNIFIED TOP BAR
+============================================================ */
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+      padding: 14px clamp(16px, 4vw, 44px);
+      background: rgba(26, 19, 16, 0.78);
+      backdrop-filter: blur(16px) saturate(140%);
+      -webkit-backdrop-filter: blur(16px) saturate(140%);
+      border-bottom: 1px solid var(--border-soft);
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+      color: #F0E7D4;
+    }
+
+    .brand:hover {
+      text-decoration: none;
+    }
+
+    .brand-orb {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background:
+        radial-gradient(circle at 32% 30%, #F0E7D4 0%, var(--cyan) 32%, #7B3F3A 78%, var(--bg-deep) 100%);
+      box-shadow: 0 0 16px rgba(193, 68, 36, 0.75), inset 0 0 6px rgba(240, 231, 212, 0.55);
+      flex: 0 0 auto;
+    }
+
+    .brand-text {
+      font-weight: 800;
+      font-size: 1.05rem;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+    }
+
+    .brand-text .dot {
+      color: var(--gold);
+    }
+
+    .main-nav {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: center;
+      flex: 1 1 auto;
+    }
+
+    .ghost-btn {
+      padding: 9px 16px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: rgba(193, 68, 36, 0.06);
+      color: var(--text-soft);
+      font-size: 0.88rem;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      transition: background 0.22s var(--ease), color 0.22s var(--ease),
+        border-color 0.22s var(--ease), transform 0.22s var(--ease);
+    }
+
+    .ghost-btn:hover {
+      background: rgba(193, 68, 36, 0.14);
+      border-color: rgba(193, 68, 36, 0.45);
+      color: #F0E7D4;
+      text-decoration: none;
+      transform: translateY(-1px);
+    }
+
+    .ghost-btn:active {
+      transform: translateY(0);
+    }
+
+    .topbar-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .mode-toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: rgba(26, 19, 16, 0.7);
+      cursor: pointer;
+      transition: border-color 0.25s var(--ease), box-shadow 0.25s var(--ease);
+    }
+
+    .mode-toggle:hover {
+      border-color: rgba(193, 68, 36, 0.5);
+      box-shadow: var(--glow-cyan);
+    }
+
+    .mode-pill {
+      padding: 7px 15px;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      color: var(--muted);
+      white-space: nowrap;
+      transition: color 0.25s var(--ease), background 0.25s var(--ease),
+        box-shadow 0.25s var(--ease);
+    }
+
+    .mode-pill.is-active {
+      color: #0f0a08;
+      background: linear-gradient(135deg, var(--cyan), var(--mint));
+      box-shadow: 0 4px 16px rgba(193, 68, 36, 0.35);
+    }
+
+    /* ============================================================
+   INDEX / LANDING / JOURNEY STYLES
+============================================================ */
+
+    /* BUTTONS */
+    .primary-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 14px 28px;
+      border: none;
+      border-radius: 999px;
+      font-size: 0.98rem;
+      font-weight: 700;
+      letter-spacing: 0.01em;
+      color: #0f0a08;
+      cursor: pointer;
+      background: linear-gradient(135deg, var(--cyan) 0%, var(--mint) 100%);
+      box-shadow: 0 10px 30px rgba(193, 68, 36, 0.28);
+      transition: transform 0.22s var(--ease), box-shadow 0.22s var(--ease), filter 0.22s var(--ease);
+    }
+
+    .primary-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 16px 40px rgba(193, 68, 36, 0.38);
+      filter: brightness(1.05);
+    }
+
+    .primary-btn:active {
+      transform: translateY(0);
+    }
+
+    .primary-btn:focus-visible {
+      outline: 2px solid var(--cyan);
+      outline-offset: 3px;
+    }
+
+    .secondary-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 14px 26px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: rgba(42, 32, 28, 0.5);
+      color: var(--text-soft);
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.22s var(--ease), border-color 0.22s var(--ease),
+        color 0.22s var(--ease), transform 0.22s var(--ease);
+    }
+
+    .secondary-btn:hover {
+      background: rgba(193, 68, 36, 0.12);
+      border-color: rgba(193, 68, 36, 0.45);
+      color: #F0E7D4;
+      text-decoration: none;
+      transform: translateY(-2px);
+    }
+
+    /* GLASS CARD */
+    .glass-card {
+      position: relative;
+      padding: clamp(20px, 3vw, 30px);
+      border-radius: var(--radius-lg);
+      background: var(--card);
+      border: 1px solid var(--border);
+      backdrop-filter: blur(18px) saturate(150%);
+      -webkit-backdrop-filter: blur(18px) saturate(150%);
+      box-shadow: var(--shadow);
+      transition: transform 0.3s var(--ease), border-color 0.3s var(--ease),
+        box-shadow 0.3s var(--ease);
+    }
+
+    .glass-card::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      background: linear-gradient(150deg, rgba(255, 255, 255, 0.06), transparent 45%);
+      pointer-events: none;
+    }
+
+    .glass-card h3 {
+      font-size: 1.08rem;
+      margin-bottom: 0.55em;
+    }
+
+    .glass-card p {
+      color: var(--text-soft);
+      font-size: 0.94rem;
+    }
+
+    .card-icon {
+      font-size: 1.7rem;
+      line-height: 1;
+      margin-bottom: 14px;
+      display: inline-grid;
+      place-items: center;
+      width: 52px;
+      height: 52px;
+      border-radius: 16px;
+      background: rgba(193, 68, 36, 0.1);
+      border: 1px solid rgba(193, 68, 36, 0.25);
+    }
+
+    /* HERO */
+    .hero-pinned {
+      position: relative;
+      height: 400vh;
+    }
+
+    .hero-sticky {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      padding: clamp(60px, 11vw, 130px) clamp(18px, 5vw, 60px);
+    }
+
+    .hero-astro-canvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+      pointer-events: auto;
+      opacity: 0;
+      transition: opacity 0.8s var(--ease);
+      cursor: default;
+    }
+
+    .hero-astro-canvas.is-loaded {
+      opacity: 1;
+    }
+
+    .hero-pinned .hero-inner {
+      position: relative;
+      z-index: 2;
+      max-width: 680px;
+      will-change: opacity;
+      transition: opacity 0.08s linear;
+    }
+
+    .hero-inner {
+      text-shadow: 0 2px 22px rgba(14, 10, 8, 0.75);
+    }
+
+    .eyebrow {
+      display: inline-block;
+      margin: 0 0 16px;
+      padding: 6px 14px;
+      border-radius: 999px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--cyan);
+      background: rgba(193, 68, 36, 0.1);
+      border: 1px solid rgba(193, 68, 36, 0.28);
+      text-shadow: none;
+    }
+
+    .hero-title {
+      font-family: 'Fraunces', Georgia, serif;
+      font-size: clamp(2.1rem, 6vw, 3.9rem);
+      font-weight: 800;
+      letter-spacing: -0.025em;
+      margin-bottom: 22px;
+    }
+
+    .grad {
+      background: linear-gradient(120deg, var(--cyan) 0%, var(--mint) 55%, #7B3F3A 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .hero-sub {
+      font-size: clamp(1rem, 1.6vw, 1.14rem);
+      color: var(--text-soft);
+      max-width: 56ch;
+      margin-bottom: 30px;
+    }
+
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      margin-bottom: 42px;
+    }
+
+    .hero-stats {
+      display: flex;
+      flex-wrap: wrap;
+      gap: clamp(18px, 4vw, 44px);
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .hero-stats li {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .hero-stats strong {
+      font-size: clamp(1.4rem, 2.6vw, 1.9rem);
+      font-weight: 800;
+      color: #F0E7D4;
+      line-height: 1;
+    }
+
+    .hero-stats span {
+      font-size: 0.78rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    /* SECTIONS */
+    .section {
+      padding: clamp(52px, 8vw, 96px) clamp(18px, 5vw, 60px);
+      max-width: 1320px;
+      margin: 0 auto;
+    }
+
+    .section-head {
+      max-width: 720px;
+      margin-bottom: clamp(28px, 4vw, 46px);
+    }
+
+    .section-head h2 {
+      font-family: 'Fraunces', Georgia, serif;
+      font-size: clamp(1.55rem, 3.2vw, 2.3rem);
+    }
+
+    .about-card h2 {
+      font-family: 'Fraunces', Georgia, serif;
+    }
+
+    .section-note {
+      color: var(--muted);
+      font-size: 0.94rem;
+    }
+
+    .grid-3 {
+      display: grid;
+      gap: clamp(16px, 2.4vw, 26px);
+      grid-template-columns: repeat(auto-fit, minmax(min(100%, 270px), 1fr));
+    }
+
+    .grid-4 {
+      display: grid;
+      gap: clamp(14px, 2vw, 22px);
+      grid-template-columns: repeat(auto-fit, minmax(min(100%, 225px), 1fr));
+    }
+
+    .hook-card {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 4px;
+      text-align: left;
+      cursor: pointer;
+      font: inherit;
+      color: inherit;
+      width: 100%;
+    }
+
+    .hook-card:hover {
+      transform: translateY(-5px);
+      border-color: rgba(193, 68, 36, 0.5);
+      box-shadow: var(--shadow), var(--glow-cyan);
+    }
+
+    .hook-card:focus-visible {
+      outline: 2px solid var(--cyan);
+      outline-offset: 3px;
+    }
+
+    .hook-card h3 {
+      font-size: 1.02rem;
+    }
+
+    .hook-cta {
+      margin-top: auto;
+      padding-top: 14px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--mint);
+      transition: color 0.22s var(--ease), transform 0.22s var(--ease);
+    }
+
+    .hook-card:hover .hook-cta {
+      color: var(--gold);
+      transform: translateX(3px);
+    }
+
+    .cta-row {
+      display: flex;
+      justify-content: center;
+      margin-top: clamp(32px, 5vw, 52px);
+    }
+
+    .about-card {
+      max-width: 880px;
+      margin: 0 auto;
+      text-align: left;
+    }
+
+    .about-lead {
+      font-size: 1.05rem;
+      font-weight: 600;
+      color: var(--mint);
+    }
+
+    .about-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin: 22px 0 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .about-tags li {
+      padding: 6px 14px;
+      border-radius: 999px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      color: var(--cyan);
+      background: rgba(193, 68, 36, 0.09);
+      border: 1px solid rgba(193, 68, 36, 0.25);
+    }
+
+    /* COPYRIGHT BAR */
+    .copyright-bar {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 70;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      flex-wrap: wrap;
+      min-height: var(--footer-h);
+      padding: 10px 16px;
+      font-size: 0.78rem;
+      letter-spacing: 0.02em;
+      color: var(--muted);
+      text-align: center;
+      background: rgba(15, 10, 8, 0.92);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border-top: 1px solid var(--border-soft);
+    }
+
+    .copyright-bar strong {
+      color: var(--cyan);
+      font-weight: 700;
+    }
+
+    /* JOURNEY */
+    .chapter-pills {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: center;
+      flex: 1 1 auto;
+    }
+
+    .chapter-pills button {
+      min-width: 38px;
+      height: 38px;
+      padding: 0 12px;
+      border-radius: 999px;
+      border: 1px solid var(--border-soft);
+      background: rgba(42, 32, 28, 0.6);
+      color: var(--text-soft);
+      font-size: 0.85rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.22s var(--ease);
+    }
+
+    .chapter-pills button:hover {
+      border-color: rgba(193, 68, 36, 0.5);
+      color: #F0E7D4;
+      background: rgba(193, 68, 36, 0.14);
+      transform: translateY(-1px);
+    }
+
+    .chapter-pills button.is-active {
+      color: #0f0a08;
+      background: linear-gradient(135deg, var(--cyan), var(--mint));
+      border-color: transparent;
+      box-shadow: 0 4px 16px rgba(193, 68, 36, 0.32);
+    }
+
+    .journey-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: clamp(18px, 2.6vw, 36px);
+      align-items: start;
+      max-width: 1480px;
+      margin: 0 auto;
+      padding: clamp(20px, 3vw, 36px) clamp(16px, 3.4vw, 44px) 40px;
+    }
+
+    .sim-panel {
+      position: sticky;
+      top: calc(var(--footer-h) + 82px);
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      max-height: calc(100vh - var(--footer-h) - 108px);
+      overflow-y: auto;
+      padding-right: 4px;
+      scrollbar-gutter: stable;
+    }
+
+    .sim-canvas-wrap {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 4 / 3;
+      min-height: 280px;
+      max-height: 46vh;
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 50% 42%, rgba(193, 68, 36, 0.12), transparent 62%),
+        linear-gradient(165deg, rgba(42, 32, 28, 0.95), rgba(15, 10, 8, 0.98));
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow), inset 0 0 60px rgba(14, 10, 8, 0.6);
+    }
+
+    #sim-canvas {
+      width: 100% !important;
+      height: 100% !important;
+    }
+
+    .sim-hud {
+      position: absolute;
+      inset: 12px 14px auto 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      pointer-events: none;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .sim-hud span {
+      padding: 6px 12px;
+      border-radius: 999px;
+      background: rgba(15, 10, 8, 0.72);
+      border: 1px solid var(--border-soft);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+    }
+
+    #hud-bpm {
+      color: var(--mint);
+    }
+
+    #hud-chapter {
+      color: var(--cyan);
+    }
+
+    .widget {
+      display: none;
+      padding: 18px 20px;
+      border-radius: var(--radius);
+      background: var(--card);
+      border: 1px solid var(--border);
+      backdrop-filter: blur(16px) saturate(150%);
+      -webkit-backdrop-filter: blur(16px) saturate(150%);
+      box-shadow: var(--shadow-soft);
+      animation: widgetIn 0.35s var(--ease);
+    }
+
+    .widget.is-active {
+      display: block;
+    }
+
+    @keyframes widgetIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .widget-title {
+      font-size: 0.78rem;
+      font-weight: 800;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--cyan);
+      margin-bottom: 14px;
+    }
+
+    .widget-hint {
+      margin: 12px 0 0;
+      font-size: 0.83rem;
+      line-height: 1.55;
+      color: var(--muted);
+    }
+
+    .widget-hint strong {
+      color: var(--text-soft);
+    }
+
+    .control-row {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .control-row output {
+      flex: 0 0 auto;
+      min-width: 74px;
+      text-align: right;
+      font-size: 0.9rem;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      color: var(--mint);
+    }
+
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      flex: 1 1 auto;
+      width: 100%;
+      height: 6px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, rgba(193, 68, 36, 0.55), rgba(211, 187, 160, 0.45));
+      outline: none;
+      cursor: pointer;
+      border: none;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: #F0E7D4;
+      border: 3px solid var(--cyan);
+      box-shadow: 0 0 14px rgba(193, 68, 36, 0.65);
+      transition: transform 0.18s var(--ease), box-shadow 0.18s var(--ease);
+    }
+
+    input[type="range"]::-webkit-slider-thumb:hover {
+      transform: scale(1.12);
+    }
+
+    input[type="range"]::-moz-range-thumb {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #F0E7D4;
+      border: 3px solid var(--cyan);
+      box-shadow: 0 0 14px rgba(193, 68, 36, 0.65);
+      cursor: pointer;
+    }
+
+    input[type="range"]::-moz-range-track {
+      height: 6px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, rgba(193, 68, 36, 0.55), rgba(211, 187, 160, 0.45));
+    }
+
+    input[type="range"]:focus-visible {
+      outline: 2px solid var(--cyan);
+      outline-offset: 6px;
+      border-radius: 999px;
+    }
+
+    .readout {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-top: 14px;
+      padding: 9px 14px;
+      border-radius: var(--radius-sm);
+      background: rgba(15, 10, 8, 0.55);
+      border: 1px solid var(--border-soft);
+      font-size: 0.82rem;
+      color: var(--muted);
+    }
+
+    .readout strong {
+      color: var(--mint);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .toggle-btn {
+      width: 100%;
+      padding: 12px 18px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: rgba(42, 32, 28, 0.75);
+      color: var(--text-soft);
+      font-size: 0.86rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.25s var(--ease);
+    }
+
+    .toggle-btn:hover {
+      border-color: rgba(193, 68, 36, 0.5);
+      background: rgba(193, 68, 36, 0.12);
+      color: #F0E7D4;
+    }
+
+    .toggle-btn[aria-pressed="true"] {
+      color: #0f0a08;
+      background: linear-gradient(135deg, var(--mint), var(--cyan));
+      border-color: transparent;
+      box-shadow: 0 6px 22px rgba(211, 187, 160, 0.3);
+    }
+
+    .meter {
+      margin-top: 14px;
+      height: 10px;
+      border-radius: 999px;
+      background: rgba(15, 10, 8, 0.8);
+      border: 1px solid var(--border-soft);
+      overflow: hidden;
+    }
+
+    .meter-fill {
+      display: block;
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, var(--gold), var(--mint));
+      transition: width 0.4s var(--ease), background 0.4s var(--ease);
+    }
+
+    .segmented {
+      display: flex;
+      gap: 8px;
+      padding: 5px;
+      border-radius: 999px;
+      background: rgba(15, 10, 8, 0.7);
+      border: 1px solid var(--border-soft);
+    }
+
+    .seg-btn {
+      flex: 1 1 0;
+      padding: 9px 12px;
+      border-radius: 999px;
+      border: none;
+      background: transparent;
+      color: var(--muted);
+      font-size: 0.82rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.22s var(--ease);
+      white-space: nowrap;
+    }
+
+    .seg-btn:hover {
+      color: var(--text-soft);
+    }
+
+    .seg-btn.is-active {
+      color: #0f0a08;
+      background: linear-gradient(135deg, var(--cyan), var(--mint));
+      box-shadow: 0 4px 14px rgba(193, 68, 36, 0.28);
+    }
+
+    .bio-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .bio-toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      flex: 1 1 auto;
+      justify-content: center;
+      padding: 11px 16px;
+      border-radius: 999px;
+      border: 1px solid var(--border-soft);
+      background: rgba(42, 32, 28, 0.7);
+      color: var(--muted);
+      font-size: 0.82rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.24s var(--ease);
+    }
+
+    .bio-toggle .dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: #5a4a42;
+      box-shadow: 0 0 0 3px rgba(90, 74, 66, 0.25);
+      transition: all 0.24s var(--ease);
+    }
+
+    .bio-toggle:hover {
+      border-color: rgba(193, 68, 36, 0.4);
+      color: var(--text-soft);
+    }
+
+    .bio-toggle.is-on {
+      color: #0f0a08;
+      background: linear-gradient(135deg, rgba(211, 187, 160, 0.92), rgba(193, 68, 36, 0.88));
+      border-color: transparent;
+      box-shadow: 0 4px 18px rgba(211, 187, 160, 0.3);
+    }
+
+    .bio-toggle.is-on .dot {
+      background: #0f0a08;
+      box-shadow: 0 0 0 3px rgba(15, 10, 8, 0.22), 0 0 12px rgba(15, 10, 8, 0.5);
+    }
+
+    .chapters {
+      display: flex;
+      flex-direction: column;
+      gap: clamp(16px, 2.2vw, 26px);
+      padding-bottom: 40px;
+    }
+
+    .chapter-card {
+      position: relative;
+      padding: clamp(20px, 2.8vw, 30px);
+      border-radius: var(--radius-lg);
+      background: var(--card);
+      border: 1px solid var(--border-soft);
+      backdrop-filter: blur(16px) saturate(140%);
+      -webkit-backdrop-filter: blur(16px) saturate(140%);
+      box-shadow: var(--shadow-soft);
+      cursor: pointer;
+      transition: transform 0.3s var(--ease), border-color 0.3s var(--ease),
+        box-shadow 0.3s var(--ease), background 0.3s var(--ease);
+      outline: none;
+    }
+
+    .chapter-card:hover {
+      transform: translateY(-3px);
+      border-color: rgba(193, 68, 36, 0.35);
+      background: var(--card-strong);
+    }
+
+    .chapter-card:focus-visible {
+      border-color: var(--cyan);
+      box-shadow: 0 0 0 2px rgba(193, 68, 36, 0.35), var(--shadow-soft);
+    }
+
+    .chapter-card.is-active {
+      border-color: rgba(193, 68, 36, 0.6);
+      background: var(--card-strong);
+      box-shadow: var(--shadow), var(--glow-cyan);
+    }
+
+    .chapter-card.is-active::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 18px;
+      bottom: 18px;
+      width: 4px;
+      border-radius: 0 4px 4px 0;
+      background: linear-gradient(180deg, var(--cyan), var(--mint));
+    }
+
+    .chapter-head {
+      display: flex;
+      align-items: baseline;
+      gap: 14px;
+      margin-bottom: 12px;
+    }
+
+    .chapter-num {
+      flex: 0 0 auto;
+      font-size: 0.82rem;
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      color: var(--gold);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .chapter-card h3 {
+      font-size: clamp(1.05rem, 1.7vw, 1.28rem);
+      margin: 0;
+    }
+
+    .chapter-card p {
+      color: var(--text-soft);
+      font-size: 0.95rem;
+    }
+
+    .source {
+      margin-top: 14px;
+      padding-top: 12px;
+      border-top: 1px dashed var(--border-soft);
+      font-size: 0.78rem !important;
+      font-style: italic;
+      color: var(--muted) !important;
+    }
+
+    /* INDEX RESPONSIVE */
+    @media (max-width: 1080px) {
+      .journey-layout {
+        grid-template-columns: minmax(0, 1fr);
+      }
+
+      .sim-panel {
+        position: static;
+        max-height: none;
+        overflow: visible;
+        padding-right: 0;
+      }
+
+      .sim-canvas-wrap {
+        aspect-ratio: 16 / 10;
+        max-height: 52vh;
+      }
+
+      .chapter-pills {
+        order: 3;
+        flex: 1 1 100%;
+        justify-content: flex-start;
+      }
+    }
+
+    @media (max-width: 820px) {
+      .topbar {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+      }
+
+      .main-nav {
+        order: 3;
+        flex: 1 1 100%;
+        justify-content: center;
+        margin-top: 6px;
+      }
+    }
+
+    @media (max-width: 720px) {
+      body {
+        font-size: 15px;
+      }
+
+      .topbar {
+        padding: 10px 14px;
+        gap: 10px;
+      }
+
+      .brand-text {
+        font-size: 0.95rem;
+        letter-spacing: 0.12em;
+      }
+
+      .hero-pinned {
+        height: 190vh;
+      }
+
+      .hero-sticky {
+        padding-top: 48px;
+        padding-bottom: 56px;
+        align-items: flex-start;
+      }
+
+      .hero-actions .primary-btn,
+      .hero-actions .secondary-btn {
+        width: 100%;
+      }
+
+      .hero-stats {
+        gap: 22px;
+      }
+
+      .section {
+        padding-left: 16px;
+        padding-right: 16px;
+      }
+
+      .sim-canvas-wrap {
+        min-height: 240px;
+        aspect-ratio: 4 / 3;
+      }
+
+      .chapter-head {
+        gap: 10px;
+      }
+
+      .copyright-bar {
+        font-size: 0.7rem;
+        padding: 8px 12px;
+      }
+    }
+
+    @media (max-width: 420px) {
+      .control-row {
+        flex-wrap: wrap;
+      }
+
+      .control-row output {
+        text-align: left;
+      }
+
+      .mode-pill {
+        padding: 6px 11px;
+        font-size: 0.74rem;
+      }
+
+      .ghost-btn {
+        padding: 8px 13px;
+        font-size: 0.8rem;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html {
+        scroll-behavior: auto;
+      }
+
+      *,
+      *::before,
+      *::after {
+        animation-duration: 0.001ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.001ms !important;
+      }
+
+      .glass-card:hover,
+      .hook-card:hover,
+      .chapter-card:hover,
+      .primary-btn:hover,
+      .secondary-btn:hover,
+      .ghost-btn:hover,
+      .chapter-pills button:hover {
+        transform: none;
+      }
+    }
+
+    :focus-visible {
+      outline: 2px solid var(--cyan);
+      outline-offset: 3px;
+      border-radius: 6px;
+    }
+
+    /* ============================================================
+   STORY STYLES  (scoped with .story-* prefixes where needed)
+============================================================ */
+
+    #view-story .progress-bar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: rgba(211, 187, 160, 0.08);
+      z-index: 100;
+    }
+
+    #view-story .progress-bar span {
+      display: block;
+      height: 100%;
+      width: 0;
+      background: linear-gradient(90deg, var(--rust), var(--sand));
+      transition: width 0.08s linear;
+    }
+
+    #dust-canvas {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -1;
+      pointer-events: none;
+    }
+
+    .story-hero {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      padding: 120px clamp(24px, 6vw, 96px) 80px;
+      position: relative;
+    }
+
+    .story-hero-inner {
+      max-width: 1000px;
+    }
+
+    .story-hero .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--rust);
+      margin: 0 0 32px;
+      padding: 0;
+      background: none;
+      border: none;
+      border-radius: 0;
+    }
+
+    .story-hero .eyebrow::before {
+      content: "";
+      display: inline-block;
+      width: 40px;
+      height: 1px;
+      background: var(--rust);
+    }
+
+    .story-hero h1 {
+      font-family: var(--display);
+      font-weight: 800;
+      font-size: clamp(2.6rem, 7vw, 6rem);
+      line-height: 1.02;
+      letter-spacing: -0.03em;
+      color: var(--cream);
+      margin: 0 0 32px;
+    }
+
+    .story-hero h1 em {
+      font-style: italic;
+      font-weight: 400;
+      color: var(--rust);
+    }
+
+    .story-hero .lede {
+      font-size: clamp(1.1rem, 1.7vw, 1.35rem);
+      line-height: 1.55;
+      max-width: 640px;
+      color: var(--cream-dim);
+      margin: 0 0 48px;
+    }
+
+    .scroll-cue {
+      display: inline-flex;
+      align-items: center;
+      gap: 14px;
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--sand);
+    }
+
+    .scroll-cue svg {
+      width: 16px;
+      height: 24px;
+      stroke: var(--sand);
+      fill: none;
+      stroke-width: 1.5;
+      animation: cueBob 2.2s var(--ease) infinite;
+    }
+
+    @keyframes cueBob {
+
+      0%,
+      100% {
+        transform: translateY(0);
+      }
+
+      50% {
+        transform: translateY(6px);
+      }
+    }
+
+    .act-intro {
+      padding: 160px clamp(24px, 6vw, 96px) 80px;
+      max-width: 1100px;
+      margin: 0 auto;
+      border-top: 1px solid var(--rule);
+    }
+
+    .act-intro .numeral {
+      display: inline-block;
+      font-family: var(--display);
+      font-weight: 400;
+      font-style: italic;
+      font-size: clamp(3rem, 8vw, 6rem);
+      line-height: 1;
+      color: var(--rust);
+      margin-bottom: 24px;
+    }
+
+    .act-intro h2 {
+      font-family: var(--display);
+      font-weight: 800;
+      font-size: clamp(2rem, 5vw, 3.6rem);
+      line-height: 1.05;
+      letter-spacing: -0.02em;
+      margin: 0 0 24px;
+      color: var(--cream);
+    }
+
+    .act-intro p {
+      font-size: clamp(1.05rem, 1.4vw, 1.2rem);
+      color: var(--cream-dim);
+      max-width: 720px;
+      margin: 0;
+    }
+
+    .scrollytelling {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 0;
+      position: relative;
+      max-width: 1500px;
+      margin: 0 auto;
+      padding: 0 clamp(20px, 5vw, 64px);
+    }
+
+    @media (min-width: 900px) {
+      .scrollytelling {
+        grid-template-columns: minmax(0, 1fr) minmax(0, 0.85fr);
+        gap: clamp(40px, 6vw, 96px);
+      }
+    }
+
+    .sticky-stage {
+      position: sticky;
+      top: 0;
+      height: 60vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 5;
+      pointer-events: none;
+    }
+
+    @media (min-width: 900px) {
+      .sticky-stage {
+        top: 12vh;
+        height: 76vh;
+      }
+    }
+
+    .sticky-stage canvas {
+      width: 100%;
+      height: 100%;
+      max-width: 640px;
+    }
+
+    .narrative {
+      padding: 40px 0 20vh;
+    }
+
+    .narrative article {
+      min-height: 70vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      opacity: 0.35;
+      transform: translateY(20px);
+      transition: opacity 0.9s var(--ease), transform 0.9s var(--ease);
+    }
+
+    .narrative article.is-active {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    @media (min-width: 900px) {
+      .narrative article {
+        min-height: 90vh;
+      }
+    }
+
+    .beat-marker {
+      display: inline-block;
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--rust);
+      margin-bottom: 20px;
+    }
+
+    .beat-marker::after {
+      content: "";
+      display: inline-block;
+      vertical-align: middle;
+      width: 32px;
+      height: 1px;
+      margin-left: 12px;
+      background: var(--rust);
+    }
+
+    .narrative h3 {
+      font-family: var(--display);
+      font-weight: 700;
+      font-size: clamp(1.6rem, 3.5vw, 2.6rem);
+      line-height: 1.1;
+      letter-spacing: -0.02em;
+      margin: 0 0 24px;
+      color: var(--cream);
+      max-width: 22ch;
+    }
+
+    .narrative p {
+      font-size: clamp(1rem, 1.2vw, 1.1rem);
+      line-height: 1.72;
+      color: var(--cream-dim);
+      margin: 0 0 18px;
+      max-width: 46ch;
+    }
+
+    .narrative p strong {
+      color: var(--sand);
+      font-weight: 600;
+    }
+
+    .narrative p em {
+      color: var(--cream);
+      font-style: italic;
+    }
+
+    .narrative .aside {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 16px;
+      padding: 8px 14px;
+      border-left: 2px solid var(--rust);
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      font-weight: 500;
+      letter-spacing: 0.06em;
+      color: var(--sand);
+    }
+
+    .interlude {
+      padding: 200px clamp(24px, 6vw, 96px);
+      text-align: center;
+      position: relative;
+    }
+
+    .interlude::before,
+    .interlude::after {
+      content: "";
+      display: block;
+      width: 60px;
+      height: 1px;
+      background: var(--rust);
+      margin: 0 auto 40px;
+    }
+
+    .interlude::after {
+      margin: 40px auto 0;
+    }
+
+    .interlude p {
+      font-family: var(--display);
+      font-weight: 400;
+      font-style: italic;
+      font-size: clamp(1.6rem, 4vw, 3rem);
+      line-height: 1.2;
+      letter-spacing: -0.01em;
+      color: var(--cream);
+      max-width: 20ch;
+      margin: 0 auto;
+    }
+
+    .interlude p em {
+      color: var(--rust);
+      font-weight: 600;
+    }
+
+    .training-scene {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 0;
+      padding: 120px clamp(24px, 6vw, 96px);
+      align-items: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    @media (min-width: 900px) {
+      .training-scene {
+        grid-template-columns: 1fr 1fr;
+        gap: 80px;
+      }
+
+      .training-scene.flip {
+        direction: rtl;
+      }
+
+      .training-scene.flip>* {
+        direction: ltr;
+      }
+    }
+
+    .scene-visual {
+      position: relative;
+      height: 55vh;
+      min-height: 320px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .scene-narrative {
+      max-width: 500px;
+    }
+
+    .scene-narrative .scene-marker {
+      display: inline-block;
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--rust);
+      margin-bottom: 20px;
+    }
+
+    .scene-narrative h3 {
+      font-family: var(--display);
+      font-weight: 700;
+      font-size: clamp(1.8rem, 3.8vw, 2.8rem);
+      line-height: 1.1;
+      letter-spacing: -0.02em;
+      margin: 0 0 24px;
+      color: var(--cream);
+    }
+
+    .scene-narrative p {
+      font-size: clamp(1rem, 1.15vw, 1.08rem);
+      line-height: 1.75;
+      color: var(--cream-dim);
+      margin: 0 0 18px;
+    }
+
+    .scene-narrative p strong {
+      color: var(--sand);
+      font-weight: 600;
+    }
+
+    .scene-narrative p em {
+      color: var(--cream);
+      font-style: italic;
+    }
+
+    .viz-centrifuge {
+      width: min(420px, 100%);
+      aspect-ratio: 1;
+      position: relative;
+    }
+
+    .viz-centrifuge .track {
+      position: absolute;
+      inset: 12%;
+      border-radius: 50%;
+      border: 1px dashed rgba(211, 187, 160, 0.3);
+    }
+
+    .viz-centrifuge .arm {
+      position: absolute;
+      inset: 12%;
+      animation: centrifugeSpin 4s linear infinite;
+    }
+
+    .viz-centrifuge .arm::before {
+      content: "";
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 50%;
+      height: 2px;
+      background: linear-gradient(90deg, var(--rust), transparent);
+      transform-origin: left center;
+      transform: translateY(-50%);
+    }
+
+    .viz-centrifuge .chair {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 0;
+      height: 0;
+      transform-origin: center;
+    }
+
+    .viz-centrifuge .chair::before {
+      content: "";
+      position: absolute;
+      top: -12px;
+      left: calc(50% - 12px);
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: var(--rust);
+      box-shadow: 0 0 24px var(--rust), 0 0 6px var(--cream);
+    }
+
+    .viz-centrifuge .chair::after {
+      content: "";
+      position: absolute;
+      top: -4px;
+      left: calc(50% - 16px);
+      width: 32px;
+      height: 4px;
+      border-radius: 2px;
+      background: var(--sand);
+      opacity: 0.6;
+    }
+
+    .viz-centrifuge .hub {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 16px;
+      height: 16px;
+      margin: -8px 0 0 -8px;
+      border-radius: 50%;
+      background: var(--sand);
+      box-shadow: 0 0 16px rgba(211, 187, 160, 0.6);
+    }
+
+    .viz-centrifuge .g-arrow {
+      position: absolute;
+      left: 50%;
+      bottom: -6%;
+      width: 2px;
+      height: 40px;
+      background: linear-gradient(to bottom, transparent, var(--rust));
+      transform: translateX(-50%);
+      animation: gArrowPulse 1.4s ease-in-out infinite;
+    }
+
+    .viz-centrifuge .g-arrow::after {
+      content: "";
+      position: absolute;
+      top: 100%;
+      left: -5px;
+      width: 0;
+      height: 0;
+      border-left: 6px solid transparent;
+      border-right: 6px solid transparent;
+      border-top: 8px solid var(--rust);
+    }
+
+    @keyframes centrifugeSpin {
+      from {
+        transform: rotate(0deg);
+      }
+
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    @keyframes gArrowPulse {
+
+      0%,
+      100% {
+        opacity: 0.4;
+      }
+
+      50% {
+        opacity: 1;
+      }
+    }
+
+    .viz-pool {
+      width: min(420px, 100%);
+      aspect-ratio: 1;
+      position: relative;
+      border-radius: 50%;
+      overflow: hidden;
+      border: 1px solid rgba(211, 187, 160, 0.25);
+      background:
+        radial-gradient(circle at 50% 40%, rgba(123, 63, 58, 0.35), transparent 70%),
+        linear-gradient(180deg, rgba(42, 32, 28, 0.4) 0%, rgba(26, 19, 16, 0.9) 100%);
+    }
+
+    .viz-pool .wave {
+      position: absolute;
+      left: 0;
+      right: 0;
+      height: 40%;
+      top: 25%;
+      background: radial-gradient(ellipse at center, rgba(193, 68, 36, 0.15), transparent 60%);
+      animation: poolWave 6s ease-in-out infinite;
+    }
+
+    @keyframes poolWave {
+
+      0%,
+      100% {
+        transform: translateY(0) scale(1);
+      }
+
+      50% {
+        transform: translateY(-8px) scale(1.04);
+      }
+    }
+
+    .viz-pool .astronaut {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      animation: poolFloat 4s ease-in-out infinite;
+    }
+
+    .viz-pool .astronaut::before {
+      content: "";
+      display: block;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: 2px solid var(--sand);
+      background: rgba(15, 10, 8, 0.5);
+      margin: 0 auto 6px;
+    }
+
+    .viz-pool .astronaut::after {
+      content: "";
+      display: block;
+      width: 24px;
+      height: 44px;
+      border-radius: 12px;
+      border: 2px solid var(--sand);
+      background: rgba(15, 10, 8, 0.3);
+      margin: 0 auto;
+    }
+
+    @keyframes poolFloat {
+
+      0%,
+      100% {
+        transform: translate(-50%, -50%) rotate(-4deg);
+      }
+
+      50% {
+        transform: translate(-50%, -54%) rotate(4deg);
+      }
+    }
+
+    .viz-pool .bubble {
+      position: absolute;
+      border-radius: 50%;
+      background: rgba(240, 231, 212, 0.55);
+      animation: bubbleRise linear infinite;
+    }
+
+    @keyframes bubbleRise {
+      from {
+        transform: translateY(100%);
+        opacity: 0;
+      }
+
+      10% {
+        opacity: 0.8;
+      }
+
+      90% {
+        opacity: 0.6;
+      }
+
+      to {
+        transform: translateY(-40vh);
+        opacity: 0;
+      }
+    }
+
+    .viz-arc {
+      width: min(480px, 100%);
+      aspect-ratio: 5 / 4;
+      position: relative;
+    }
+
+    .viz-arc svg {
+      width: 100%;
+      height: 100%;
+      overflow: visible;
+    }
+
+    .viz-arc .path {
+      fill: none;
+      stroke: rgba(211, 187, 160, 0.4);
+      stroke-width: 1.5;
+      stroke-dasharray: 4 6;
+    }
+
+    .viz-arc .path-0g {
+      fill: none;
+      stroke: var(--rust);
+      stroke-width: 2.5;
+    }
+
+    .viz-arc .plane {
+      fill: var(--rust);
+      filter: drop-shadow(0 0 8px var(--rust));
+    }
+
+    .viz-arc .label {
+      font-family: var(--mono);
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      fill: var(--sand);
+      text-transform: uppercase;
+    }
+
+    .epilogue {
+      padding: 200px clamp(24px, 6vw, 96px) 160px;
+      max-width: 1000px;
+      margin: 0 auto;
+      text-align: center;
+    }
+
+    .epilogue .eyebrow {
+      display: inline-block;
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--rust);
+      margin: 0 0 32px;
+      padding: 0;
+      background: none;
+      border: none;
+      border-radius: 0;
+    }
+
+    .epilogue h2 {
+      font-family: var(--display);
+      font-weight: 800;
+      font-size: clamp(2rem, 4.5vw, 3.6rem);
+      line-height: 1.08;
+      letter-spacing: -0.025em;
+      margin: 0 0 32px;
+      color: var(--cream);
+    }
+
+    .epilogue h2 em {
+      font-style: italic;
+      font-weight: 400;
+      color: var(--rust);
+    }
+
+    .epilogue p {
+      font-size: clamp(1rem, 1.3vw, 1.15rem);
+      line-height: 1.75;
+      color: var(--cream-dim);
+      max-width: 620px;
+      margin: 0 auto 24px;
+    }
+
+    .epilogue .back-cta {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      margin-top: 32px;
+      padding: 14px 28px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, var(--rust), var(--sand));
+      color: var(--bg-deep);
+      font-family: var(--mono);
+      font-size: 0.8rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      text-decoration: none;
+      transition: transform 0.22s var(--ease), box-shadow 0.22s var(--ease);
+    }
+
+    .epilogue .back-cta:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 32px rgba(193, 68, 36, 0.4);
+      text-decoration: none;
+    }
+
+    .story-footer {
+      padding: 40px clamp(24px, 6vw, 96px);
+      border-top: 1px solid var(--rule);
+      text-align: center;
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      letter-spacing: 0.08em;
+      color: var(--cream-dim);
+    }
+
+    .story-footer strong {
+      color: var(--rust);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html {
+        scroll-behavior: auto;
+      }
+
+      *,
+      *::before,
+      *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+  </style>
+</head>
+
+<body class="mode-kid view-landing">
+
+  <!-- ============================================================
+     SHARED AMBIENT CANVAS (landing view)
+============================================================ -->
+  <canvas id="space-canvas" class="space-canvas" aria-hidden="true"></canvas>
+
+  <!-- ============================================================
+     GLOBAL UNIFIED TOP BAR (Present on every page & section)
+============================================================ -->
+  <header class="topbar">
+    <a class="brand" href="index.html" aria-label="HEALTH-E home">
+      <span class="brand-orb"></span>
+      <span class="brand-text">HEALTH<span class="dot">-</span>E</span>
+    </a>
+
+    <nav class="main-nav" aria-label="Primary navigation">
+      <a class="ghost-btn" href="index.html#about" id="nav-about">About us</a>
+      <a class="ghost-btn" href="index.html#story" id="nav-story">Storytelling</a>
+      <a class="ghost-btn" href="Monitoring.html" id="nav-monitoring">Monitoring</a>
+      <a class="ghost-btn" href="Analysis.html" id="nav-analysis">Analysis</a>
+    </nav>
+
+    <div class="topbar-actions">
+      <button class="mode-toggle" type="button" data-mode-toggle aria-label="Toggle reading mode">
+        <span class="mode-pill is-active" data-mode-pill="kid">Curious</span>
+        <span class="mode-pill" data-mode-pill="adult">Researcher</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- ============================================================
+     VIEW 1 — LANDING
+============================================================ -->
+  <div id="view-landing" class="view">
+
+    <main id="top">
+
+      <section class="hero hero-pinned" id="hero">
+        <div class="hero-sticky">
+          <canvas id="hero-astro-canvas" class="hero-astro-canvas" aria-hidden="true"></canvas>
+
+          <div class="hero-inner">
+            <p class="eyebrow">NASA Space Apps Cairo 2026 · Astronauts Health Challenge</p>
+            <h1 class="hero-title">Your body was built for <span class="grad">Earth</span>.<br />Space has other plans.
+            </h1>
+
+            <p class="hero-sub kid-copy">
+              Float with us through 7 stops of a space mission and discover what happens to your bones,
+              your blood, your brain and even your tummy bugs when gravity switches off.
+            </p>
+            <p class="hero-sub adult-copy">
+              A dual-audience explorer of human physiological adaptation to spaceflight — translating
+              NASA Human Research Program and GeneLab data into an interactive, evidence-based narrative
+              for families and curious adults.
+            </p>
+
+            <div class="hero-actions">
+              <button class="primary-btn" id="btn-start" type="button">Start the Interactive Journey →</button>
+              <a class="secondary-btn" href="#hooks">See the curiosities</a>
+            </div>
+
+            <ul class="hero-stats">
+              <li><strong>7</strong><span>Mission stages</span></li>
+              <li><strong>6</strong><span>Organs simulated</span></li>
+              <li><strong>2</strong><span>Reading modes</span></li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="purpose">
+        <div class="section-head">
+          <p class="eyebrow">Why we built this</p>
+          <h2>Dense science, translated for every orbit.</h2>
+        </div>
+
+        <div class="grid-3">
+          <article class="glass-card">
+            <div class="card-icon">📚</div>
+            <h3>The gap we found</h3>
+            <p class="kid-copy">
+              NASA's real space science is <em>amazing</em>, but it's written with giant words.
+              We wanted our little sister — and our grandparents — to understand it too.
+            </p>
+            <p class="adult-copy">
+              NASA HRP and GeneLab publish rigorous, citation-dense literature on human adaptation
+              to spaceflight. Accessibility remains low for non-specialists, and most outreach
+              material trades scientific accuracy for spectacle.
+            </p>
+          </article>
+
+          <article class="glass-card">
+            <div class="card-icon">🛰️</div>
+            <h3>One story, two voices</h3>
+            <p class="kid-copy">
+              Flip the switch at the top of the page! Curious Mode tells the story like an adventure.
+              Science Mode shows you the real numbers and where they came from.
+            </p>
+            <p class="adult-copy">
+              A single narrative layer serves two audiences simultaneously: simplified analogy-based
+              explanations for younger visitors, and sourced physiological data with citations for
+              adult readers — toggled live without reloading the page.
+            </p>
+          </article>
+
+          <article class="glass-card">
+            <div class="card-icon">🧬</div>
+            <h3>Bodies change in orbit</h3>
+            <p class="kid-copy">
+              Astronauts come home taller, puffier and a little wobbly. Their bodies are basically
+              rewriting the rulebook — and we get to watch it happen in 3D.
+            </p>
+            <p class="adult-copy">
+              Microgravity triggers a cascade of adaptations: cephalad fluid shift, cephalad
+              intracranial pressure, bone mineral loss, sarcopenia, microbiome drift and vestibular
+              re-adaptation. Each is modelled interactively in the journey simulator.
+            </p>
+          </article>
+        </div>
+      </section>
+
+      <section class="section" id="hooks">
+        <div class="section-head">
+          <p class="eyebrow">Curiosity hooks</p>
+          <h2>Four things that surprised us most.</h2>
+          <p class="section-note kid-copy">Tap a card to jump straight into that part of the mission.</p>
+          <p class="section-note adult-copy">Select a card to open the corresponding simulator stage.</p>
+        </div>
+
+        <div class="grid-4">
+          <button class="glass-card hook-card" data-chapter="3" type="button">
+            <div class="card-icon">🎈</div>
+            <h3>Puffy Face Syndrome</h3>
+            <p class="kid-copy">About 2 litres of body fluid floats up into your head. Hello, balloon face.</p>
+            <p class="adult-copy">Cephalad fluid shift redistributes ~2 L within hours; facial oedema and jugular venous
+              distension follow.</p>
+            <span class="hook-cta">Stage 3 →</span>
+          </button>
+
+          <button class="glass-card hook-card" data-chapter="4" type="button">
+            <div class="card-icon">🦴</div>
+            <h3>Bone Loss</h3>
+            <p class="kid-copy">Bones get lazy without gravity — up to 1.5% gone every month.</p>
+            <p class="adult-copy">BMD falls ~1–1.5 %/month in hip and spine without countermeasures; ARED resistive
+              loading limits the decline.</p>
+            <span class="hook-cta">Stage 4 →</span>
+          </button>
+
+          <button class="glass-card hook-card" data-chapter="7" type="button">
+            <div class="card-icon">🌱</div>
+            <h3>Space Farms</h3>
+            <p class="kid-copy">Astronauts grow lettuce in space! Plants make oxygen and fresh food.</p>
+            <p class="adult-copy">NASA Veggie and APH have produced lettuce, radishes and dwarf tomatoes on ISS;
+              microgravity alters lignin deposition.</p>
+            <span class="hook-cta">Stage 7 →</span>
+          </button>
+
+          <button class="glass-card hook-card" data-chapter="5" type="button">
+            <div class="card-icon">🌌</div>
+            <h3>Vacuum Exposure</h3>
+            <p class="kid-copy">Movies say you explode. Real space says… not exactly. Let's check.</p>
+            <p class="adult-copy">Ebullism and hypoxia, not explosive decompression: ~9–12 s of useful consciousness
+              below the Armstrong limit.</p>
+            <span class="hook-cta">Stage 5 →</span>
+          </button>
+        </div>
+
+        <div class="cta-row">
+          <button class="primary-btn" id="btn-start-2" type="button">Enter the 7-Stage Simulator →</button>
+        </div>
+      </section>
+
+      <section class="section" id="about">
+        <div class="about-card glass-card">
+          <p class="eyebrow">About</p>
+          <h2>Built by Team MYTHs</h2>
+          <p class="about-lead">NASA Space Apps Cairo 2026 — Astronauts Health Challenge.</p>
+          <p class="kid-copy">
+            We are a small team of curious humans who love space, science and storytelling.
+            HEALTH-E is our way of opening the door to real space biology for everyone —
+            HEALTH-E is our way of opening the door to real space biology for everyone —
+            no lab coat required.
+          </p>
+          <p class="adult-copy">
+            HEALTH-E was built for the NASA Space Apps Challenge Cairo 2026 under the Astronauts
+            Health theme. It draws on NASA Human Research Program roadmaps, GeneLab datasets and
+            ISS life-science publications, and presents them in an accessible, dual-audience format.
+          </p>
+          <ul class="about-tags">
+            <li>Three.js</li>
+            <li>GLTFLoader</li>
+            <li>NASA HRP</li>
+            <li>GeneLab</li>
+            <li>Accessibility-first</li>
+          </ul>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- ============================================================
+     VIEW 2 — 7-STAGE JOURNEY SIMULATOR
+============================================================ -->
+  <div id="view-journey" class="view">
+
+    <div class="chapter-pills-wrap"
+      style="padding: 14px clamp(16px, 4vw, 44px); border-bottom: 1px solid var(--border-soft); background: rgba(26, 19, 16, 0.5);">
+      <nav class="chapter-pills" id="chapter-pills" aria-label="Jump to stage"></nav>
+    </div>
+
+    <div class="journey-layout">
+
+      <aside class="sim-panel">
+        <div class="sim-canvas-wrap" id="sim-canvas-wrap">
+          <canvas id="sim-canvas"></canvas>
+          <div class="sim-hud">
+            <span id="hud-chapter">Stage 1 / 7</span>
+            <span id="hud-bpm">♥ 62 bpm</span>
+          </div>
+        </div>
+
+        <div class="widgets" id="widgets">
+
+          <div class="widget is-active" data-widget="1">
+            <h4 class="widget-title">Gravity Dial</h4>
+            <div class="control-row">
+              <input type="range" id="in-gravity" min="0" max="100" value="100" />
+              <output id="out-gravity">1.00 G</output>
+            </div>
+            <p class="widget-hint kid-copy">Slide toward 0 G and watch the fluids drift up to your head.</p>
+            <p class="widget-hint adult-copy">0 g removes the hydrostatic column; ~2 L shifts cephalad within minutes.
+            </p>
+          </div>
+
+          <div class="widget" data-widget="2">
+            <h4 class="widget-title">Launch G-Load</h4>
+            <div class="control-row">
+              <input type="range" id="in-gload" min="100" max="450" value="100" />
+              <output id="out-gload">1.0 G</output>
+            </div>
+            <div class="readout"><span>Heart rate</span><strong id="out-bpm">62 bpm</strong></div>
+            <p class="widget-hint kid-copy">Push the throttle — your heart has to work much harder to reach your brain.
+            </p>
+            <p class="widget-hint adult-copy">+Gx acceleration raises cardiac output and heart rate; lung volume
+              compresses, increasing work of breathing.</p>
+          </div>
+
+          <div class="widget" data-widget="3">
+            <h4 class="widget-title">Fluid Shift</h4>
+            <div class="control-row">
+              <input type="range" id="in-fluid" min="0" max="100" value="100" />
+              <output id="out-fluid">100%</output>
+            </div>
+            <p class="widget-hint kid-copy">100% means all the fluid has floated up. Look at the face — and the skinny
+              legs.</p>
+            <p class="widget-hint adult-copy">Leg volume can drop 10–30 % while facial oedema and jugular distension
+              increase.</p>
+          </div>
+
+          <div class="widget" data-widget="4">
+            <h4 class="widget-title">Countermeasure: ARED</h4>
+            <button class="toggle-btn" id="btn-ared" type="button" aria-pressed="false">Activate 2-hr daily
+              exercise</button>
+            <div class="meter"><span class="meter-fill" id="bone-meter" style="width:91%"></span></div>
+            <div class="readout"><span>Bone mineral density</span><strong id="out-bone">91.0%</strong></div>
+            <p class="widget-hint kid-copy">Exercise tells your bones "we still need you!" and slows the loss a lot.</p>
+            <p class="widget-hint adult-copy">Resistive loading (ARED) plus aerobic work limits BMD loss to &lt;1
+              %/month on ISS.</p>
+          </div>
+
+          <div class="widget" data-widget="5">
+            <h4 class="widget-title">Vacuum Physics</h4>
+            <div class="segmented">
+              <button class="seg-btn is-active" id="btn-vacuum-myth" type="button">Hollywood Myth</button>
+              <button class="seg-btn" id="btn-vacuum-real" type="button">NASA Reality</button>
+            </div>
+            <p class="widget-hint" id="out-vacuum">
+              Your body does <strong>not</strong> explode. Skin tension contains the pressure difference;
+              the real danger is ebullism and hypoxia.
+            </p>
+          </div>
+
+          <div class="widget" data-widget="6">
+            <h4 class="widget-title">Readaptation</h4>
+            <div class="control-row">
+              <input type="range" id="in-readapt" min="0" max="100" value="0" />
+              <output id="out-readapt">0%</output>
+            </div>
+            <p class="widget-hint kid-copy">Slide forward to see the body re-learning how to live with gravity again.
+            </p>
+            <p class="widget-hint adult-copy">Plasma volume restoration and baroreflex recovery drive orthostatic
+              tolerance over 2–6 weeks.</p>
+          </div>
+
+          <div class="widget" data-widget="7">
+            <h4 class="widget-title">Bio-Dome Status</h4>
+            <div class="bio-row">
+              <button class="bio-toggle is-on" id="btn-microbes" type="button" aria-pressed="true">
+                <span class="dot" id="dot-microbes"></span> Gut microbiome
+              </button>
+              <button class="bio-toggle is-on" id="btn-hydro" type="button" aria-pressed="true">
+                <span class="dot" id="dot-hydro"></span> Hydroponics
+              </button>
+            </div>
+            <p class="widget-hint kid-copy">Tummy bugs and space plants are the crew's tiny life-support crew.</p>
+            <p class="widget-hint adult-copy">Microbiome diversity and crop yield are tracked as critical life-support
+              variables.</p>
+          </div>
+
+        </div>
+      </aside>
+
+      <section class="chapters" id="chapters">
+
+        <article class="chapter-card is-active" data-chapter="1" tabindex="0">
+          <div class="chapter-head">
+            <span class="chapter-num">01</span>
+            <h3>Earth Baseline — 1 ATM &amp; 1 G</h3>
+          </div>
+          <p class="kid-copy">
+            On Earth, gravity keeps everything where it should be. Your blood pools a little in your
+            legs, your heart pumps a steady beat, and your bones stay strong because they carry your
+            weight all day long. This is your body's happy place.
+          </p>
+          <p class="adult-copy">
+            At 1 g and 1 atm, the cardiovascular system maintains a hydrostatic gradient between head
+            and feet. Baroreceptors keep mean arterial pressure near 93 mmHg, and bone remodelling
+            stays balanced under normal mechanical loading (Wolff's law).
+          </p>
+          <p class="source adult-copy">Source: NASA Human Research Program — Cardiovascular &amp; Musculoskeletal Risk
+            roadmaps.</p>
+        </article>
+
+        <article class="chapter-card" data-chapter="2" tabindex="0">
+          <div class="chapter-head">
+            <span class="chapter-num">02</span>
+            <h3>Reaching Orbit — Launch G-Forces</h3>
+          </div>
+          <p class="kid-copy">
+            Blast off! During launch you get squished into your seat — up to 4.5 times your normal
+            body weight. Your heart races to push blood all the way up to your brain.
+          </p>
+          <p class="adult-copy">
+            Soyuz and Falcon 9 ascent profiles peak around 4–4.5 g in the +Gx (chest-to-back) axis.
+            Cardiac output roughly doubles, heart rate rises 20–40 bpm, and lung volume compresses,
+            increasing the work of breathing.
+          </p>
+          <p class="source adult-copy">Source: NASA HRP — Acceleration &amp; G-Transition Physiology.</p>
+        </article>
+
+        <article class="chapter-card" data-chapter="3" tabindex="0">
+          <div class="chapter-head">
+            <span class="chapter-num">03</span>
+            <h3>Reaching Zero-G — The Fluid Shift</h3>
+          </div>
+          <p class="kid-copy">
+            In space, the blood and water in your body float upward — about 2 litres moves from your
+            legs to your head! Your face gets puffy and your legs get skinny. Astronauts call it
+            "puffy face, chicken legs".
+          </p>
+          <p class="adult-copy">
+            Microgravity removes the hydrostatic gradient: ~2 L of fluid cephalad-shifts within hours.
+            Jugular venous distension, facial oedema and a 10–30 % decrease in leg volume follow.
+            Intracranial pressure rises, and Spaceflight Associated Neuro-ocular Syndrome (SANS) is
+            observed in a majority of long-duration crew.
+          </p>
+          <p class="source adult-copy">Source: NASA HRP — Fluid Shifts experiment (ISS), SANS evidence base.</p>
+        </article>
+
+        <article class="chapter-card" data-chapter="4" tabindex="0">
+          <div class="chapter-head">
+            <span class="chapter-num">04</span>
+            <h3>Long-Term Station Life — Bones &amp; Muscles</h3>
+          </div>
+          <p class="kid-copy">
+            Without gravity pulling on your bones, they get lazy. Astronauts lose about 1.5 % of bone
+            density each month — that's like ten years of ageing packed into six months! But two hours
+            of exercise a day on the ARED machine helps a lot.
+          </p>
+          <p class="adult-copy">
+            Bone mineral density falls ~1–1.5 %/month in hip and spine during early ISS missions
+            without countermeasures, while muscle cross-sectional area drops 1–5 %/week. The current
+            ISS protocol — ~2 h/day of resistive (ARED) and aerobic exercise — limits BMD loss to
+            under 1 %/month.
+          </p>
+          <p class="source adult-copy">Source: NASA HRP — Bone &amp; Muscle Loss risk; ISS ARED countermeasure data.</p>
+        </article>
+
+        <article class="chapter-card" data-chapter="5" tabindex="0">
+          <div class="chapter-head">
+            <span class="chapter-num">05</span>
+            <h3>Unprotected Vacuum Exposure</h3>
+          </div>
+          <p class="kid-copy">
+            Movies show astronauts exploding in space — that's <strong>not</strong> what happens!
+            Real space is a vacuum, so the air rushes out of your lungs very fast, but your skin is
+            tough and keeps you in one piece. You'd have about 15 seconds before you pass out.
+          </p>
+          <p class="adult-copy">
+            Exposure below the Armstrong limit (~19 km / 6.3 kPa) causes ebullism — water boils at
+            body temperature. In a hard vacuum, hypoxia causes loss of useful consciousness in
+            ~9–12 s, and decompression of the body's ~1 L of lung gas can rupture alveoli. The body
+            does not explode: skin tension and tissue strength contain the pressure differential.
+            Survival is possible if repressurised within ~90 s.
+          </p>
+          <p class="source adult-copy">Source: NASA — Physiological effects of vacuum exposure; Armstrong limit
+            literature.</p>
+        </article>
+
+        <article class="chapter-card" data-chapter="6" tabindex="0">
+          <div class="chapter-head">
+            <span class="chapter-num">06</span>
+            <h3>Earth Return — Readaptation</h3>
+          </div>
+          <p class="kid-copy">
+            Coming home feels weird! Your body got used to floating, so standing up makes you dizzy.
+            Your brain has to relearn how to balance — it usually takes two to six weeks.
+          </p>
+          <p class="adult-copy">
+            Post-flight orthostatic intolerance affects a large share of returning crew: plasma volume
+            is reduced 10–15 % and baroreflex sensitivity is blunted. Vestibular re-adaptation
+            (sensory conflict, motion sickness) resolves over 2–6 weeks. Bone lost in flight is only
+            partially recovered — some trabecular deficits persist for years.
+          </p>
+          <p class="source adult-copy">Source: NASA HRP — Post-flight orthostatic intolerance &amp; sensorimotor
+            adaptation.</p>
+        </article>
+
+        <article class="chapter-card" data-chapter="7" tabindex="0">
+          <div class="chapter-head">
+            <span class="chapter-num">07</span>
+            <h3>Bio-Dome — Microbes &amp; Plants</h3>
+          </div>
+          <p class="kid-copy">
+            Your tummy is full of tiny helpers called microbes — and they change in space! Astronauts
+            also grow plants like lettuce in space farms, to eat fresh food and to make oxygen.
+          </p>
+          <p class="adult-copy">
+            Long-duration flight shifts the gut microbiome toward a pro-inflammatory profile, with
+            reduced diversity and increased intestinal permeability. Plant growth in microgravity
+            alters lignin and cellulose deposition; NASA's Veggie and Advanced Plant Habitat have
+            produced lettuce, radishes and dwarf tomatoes on ISS.
+          </p>
+          <p class="source adult-copy">Source: NASA GeneLab microbiome datasets; NASA Veggie / APH crop results.</p>
+        </article>
+
+      </section>
+    </div>
+  </div>
+
+  <!-- ============================================================
+     VIEW 3 — STORY (Three-Act Scrollytelling)
+============================================================ -->
+  <div id="view-story" class="view">
+
+    <!-- Story ambient dust canvas -->
+    <canvas id="dust-canvas" aria-hidden="true"></canvas>
+
+    <!-- Story reading progress bar -->
+    <div class="progress-bar"><span id="progress-fill"></span></div>
+
+    <!-- Hero -->
+    <section class="story-hero">
+      <div class="story-hero-inner">
+        <span class="eyebrow">A Three-Act Journey</span>
+        <h1>Where does the body <em>go</em> when gravity leaves?</h1>
+        <p class="lede kid-copy">
+          Scroll to follow one astronaut's body from a quiet morning on Earth, through the training
+          that prepares it, into orbit — and back. Each act is told one beat at a time.
+        </p>
+        <p class="lede science-copy">
+          An interactive physiological narrative in three acts: terrestrial organ organisation at
+          1.00 g, the pre-flight conditioning that hardens the body for launch, and the acute
+          adaptations that unfold across ascent and microgravity exposure.
+        </p>
+        <div class="scroll-cue">
+          <span>Scroll</span>
+          <svg viewBox="0 0 16 24" aria-hidden="true">
+            <path d="M8 2 L8 20 M2 14 L8 20 L14 14" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+        </div>
+      </div>
+    </section>
+
+    <!-- ACT I -->
+    <section class="act-intro" id="act-1">
+      <span class="numeral">I</span>
+      <h2>Terrestrial Harmony</h2>
+      <p class="kid-copy">
+        On Earth, everything in the body has a place — held there by gravity, organised by it,
+        and quietly kept running by it. Scroll to meet three organs at work.
+      </p>
+      <p class="science-copy">
+        At 1.00 g and 101.3 kPa, the body is a hydrostatically organised system: perfusion
+        gradients, mechanical loading, and vestibular calibration all depend on gravity as a
+        constant reference. Scroll to examine three systems in their baseline state.
+      </p>
+    </section>
+
+    <div class="scrollytelling" id="scrolly-1">
+      <div class="sticky-stage">
+        <canvas id="canvas-act-1"></canvas>
+      </div>
+
+      <div class="narrative" id="narrative-1">
+        <article data-beat="heart" data-scene="act1" class="is-active">
+          <span class="beat-marker">Beat 01 · Cardiovascular</span>
+          <h3>Blood that climbs <em>against</em> gravity.</h3>
+          <p class="kid-copy">
+            The heart sits just left of centre in the chest. Every beat pushes blood upward to the
+            brain and downward to the feet — but gravity is always pulling it back. Special one-way
+            valves in the leg veins catch each downward surge and let it climb, one beat at a time.
+          </p>
+          <p class="science-copy">
+            Mean arterial pressure sits near 93 mmHg. A hydrostatic column of roughly 70 mmHg exists
+            between head and foot in the standing posture; skeletal-muscle pumping and venous valves
+            oppose gravity's cephalo-caudal gradient to maintain venous return.
+          </p>
+          <span class="aside">62 BPM · 120/80 mmHg · 1.00 g</span>
+        </article>
+
+        <article data-beat="lungs" data-scene="act1">
+          <span class="beat-marker">Beat 02 · Respiratory</span>
+          <h3>Every breath is <em>effortless</em>.</h3>
+          <p class="kid-copy">
+            Twelve pairs of ribs form a protective cage. Beneath them, the dome-shaped diaphragm
+            pulls down and lets sea-level air pressure do the work of filling two spongy lungs.
+            At 1 atmosphere, breathing is the easiest thing you do all day.
+          </p>
+          <p class="science-copy">
+            Ambient pressure at sea level is 101.3 kPa with 21% O₂. Diaphragmatic contraction
+            creates roughly −5 to −8 cm H₂O of negative intrathoracic pressure; gravitational
+            perfusion gradients favour the lung bases, naturally distributing ventilation-perfusion
+            matching.
+          </p>
+          <span class="aside">14 breaths/min · 101.3 kPa · 37.0°C</span>
+        </article>
+
+        <article data-beat="abdomen" data-scene="act1">
+          <span class="beat-marker">Beat 03 · Visceral &amp; Vestibular</span>
+          <h3>The body has <em>a before and after</em>.</h3>
+          <p class="kid-copy">
+            Below the diaphragm, the liver sits on the right, the stomach curves on the left, and
+            the intestines coil below. Meanwhile, tiny crystals in the inner ear rest against hair
+            cells under their own weight — telling the brain which way is down.
+          </p>
+          <p class="science-copy">
+            Sub-diaphragmatic viscera are suspended in anteroposterior alignment by peritoneal
+            ligaments. In parallel, otolith crystals rest on the maculae of the utricle and saccule
+            at 9.81 m/s²; their tonic discharge is the neural signature of "down".
+          </p>
+          <span class="aside">Otoliths calibrated · Adrenaline baseline</span>
+        </article>
+      </div>
+    </div>
+
+    <!-- Interlude -->
+    <section class="interlude">
+      <p>But the body was made <em>for</em> gravity. Every part of it expects to be pulled.</p>
+    </section>
+
+    <!-- ACT II -->
+    <section class="act-intro" id="act-2">
+      <span class="numeral">II</span>
+      <h2>The Making of an Astronaut</h2>
+      <p class="kid-copy">
+        Before anyone leaves Earth, they spend years teaching their body what space will do to it —
+        deliberately, in machines built for exactly that. Three of these preparations tell the
+        story best.
+      </p>
+      <p class="science-copy">
+        Pre-flight conditioning targets the three systems most stressed by ascent and microgravity:
+        cardiovascular tolerance to sustained +Gx loads, extravehicular kinematics in simulated
+        weightlessness, and vestibular adaptation to sensory conflict.
+      </p>
+    </section>
+
+    <article class="training-scene">
+      <div class="scene-visual">
+        <div class="viz-centrifuge">
+          <div class="track"></div>
+          <div class="arm">
+            <div class="chair"></div>
+          </div>
+          <div class="hub"></div>
+          <div class="g-arrow"></div>
+        </div>
+      </div>
+      <div class="scene-narrative">
+        <span class="scene-marker">Preparation 01 · High-G Centrifuge</span>
+        <h3>Learning to breathe at three times your weight.</h3>
+        <p class="kid-copy">
+          A giant rotating arm spins the trainee at <strong>3 to 4.5 times Earth's gravity</strong>.
+          Blood gets so heavy it wants to pool in the legs, and the brain can lose oxygen within
+          seconds. Astronauts learn a trick called AGSM — tensing every muscle and taking short,
+          quick breaths to keep the blood climbing to the head.
+        </p>
+        <p class="science-copy">
+          Centrifuge runs replicate launch (+Gx, chest-to-back) and reentry (+Gz, head-to-foot)
+          profiles. Trainees perform the Anti-G Straining Maneuver (L-1/M-1 AGSM): isometric
+          lower-limb contraction with 3-second respiratory cycles to elevate mean arterial
+          pressure at eye level and avert G-induced loss of consciousness.
+        </p>
+        <span class="aside">Why it matters · Ascent peaks at 4.2 Gx</span>
+      </div>
+    </article>
+
+    <article class="training-scene flip">
+      <div class="scene-visual">
+        <div class="viz-pool">
+          <div class="wave"></div>
+          <div class="astronaut"></div>
+          <span class="bubble"
+            style="left:20%; width:6px; height:6px; animation-duration:5s; animation-delay:0s;"></span>
+          <span class="bubble"
+            style="left:35%; width:9px; height:9px; animation-duration:7s; animation-delay:1.2s;"></span>
+          <span class="bubble"
+            style="left:55%; width:5px; height:5px; animation-duration:6s; animation-delay:2.4s;"></span>
+          <span class="bubble"
+            style="left:70%; width:8px; height:8px; animation-duration:8s; animation-delay:3.6s;"></span>
+        </div>
+      </div>
+      <div class="scene-narrative">
+        <span class="scene-marker">Preparation 02 · Neutral Buoyancy Lab</span>
+        <h3>Learning to work when nothing pulls you down.</h3>
+        <p class="kid-copy">
+          In a 6.2-million-gallon indoor pool, astronauts wear weighted spacesuits so they neither
+          float nor sink. Over seven-hour dives they rehearse spacewalk repairs at the bottom of the
+          water — the closest Earth gets to the weightlessness of orbit.
+        </p>
+        <p class="science-copy">
+          Neutral buoyancy balances hydrostatic forces against gravitational weight to approximate
+          the free-float kinematics of Extravehicular Activity. Full-scale ISS mock-ups on the pool
+          floor let crews rehearse task sequencing, tooling, and tethered body positioning under
+          realistic crew time.
+        </p>
+        <span class="aside">Why it matters · Every ISS spacewalk is rehearsed here</span>
+      </div>
+    </article>
+
+    <article class="training-scene">
+      <div class="scene-visual">
+        <div class="viz-arc">
+          <svg viewBox="0 0 480 384">
+            <path class="path" d="M 40 320 Q 240 20 440 320" />
+            <path class="path-0g" d="M 160 130 Q 240 20 320 130" />
+            <text class="label" x="240" y="30" text-anchor="middle">0.00 G · 25 seconds</text>
+            <text class="label" x="60" y="340" text-anchor="middle">1.8 G</text>
+            <text class="label" x="420" y="340" text-anchor="middle">1.8 G</text>
+            <circle class="plane" r="7" cx="0" cy="0">
+              <animateMotion dur="6s" repeatCount="indefinite" path="M 40 320 Q 240 20 440 320" />
+            </circle>
+          </svg>
+        </div>
+      </div>
+      <div class="scene-narrative">
+        <span class="scene-marker">Preparation 03 · Parabolic Flight</span>
+        <h3>Twenty-five seconds of freefall, forty times a flight.</h3>
+        <p class="kid-copy">
+          A modified jet climbs steeply, then tips nose-down to trace a rollercoaster arc through the
+          sky. At the top of each arc, everything inside floats for about 25 seconds. Astronauts ride
+          forty of these arcs in a single flight to teach the inner ear what weightlessness will feel
+          like — and to learn how to work while it lasts.
+        </p>
+        <p class="science-copy">
+          A parabolic profile alternates ~20 s at 1.8 g with ~25 s at 0.00 g, repeated 30–40 times
+          per flight. Each parabola produces a controlled vestibular stimulus, letting crews
+          habituate the otolith organs to unloaded states before orbital insertion introduces the
+          same conflict in an unforgiving environment.
+        </p>
+        <span class="aside">Why it matters · Space adaptation syndrome peaks in first 72 hours</span>
+      </div>
+    </article>
+
+    <!-- Interlude -->
+    <section class="interlude">
+      <p>Then, at <em>T-minus zero</em>, the training becomes real.</p>
+    </section>
+
+    <!-- ACT III -->
+    <section class="act-intro" id="act-3">
+      <span class="numeral">III</span>
+      <h2>Body in Freefall</h2>
+      <p class="kid-copy">
+        Eight minutes to orbit. Then a lifetime — or at least six months — in which gravity stops
+        doing what your body expects. Scroll to watch the body adapt, in slow motion.
+      </p>
+      <p class="science-copy">
+        Ascent introduces peak +4.2 Gx compression; MECO removes it in an instant. What follows is
+        a cascade of adaptations — fluid redistribution, axial unloading, and vestibular
+        recalibration — that unfold across hours, weeks, and months.
+      </p>
+    </section>
+
+    <div class="scrollytelling" id="scrolly-3">
+      <div class="sticky-stage">
+        <canvas id="canvas-act-3"></canvas>
+      </div>
+
+      <div class="narrative" id="narrative-3">
+        <article data-beat="launch" data-scene="act3" class="is-active">
+          <span class="beat-marker">Beat 01 · Ascent</span>
+          <h3>Eight minutes pressed <em>into</em> the seat.</h3>
+          <p class="kid-copy">
+            During ascent, the rocket pushes the body at up to <strong>4.2 times normal gravity</strong>.
+            The chest feels heavy, breathing turns shallow and quick, and every organ inside the
+            abdomen is pressed toward the spine. The heart races at 130–140 beats per minute to keep
+            pushing blood up to the brain.
+          </p>
+          <p class="science-copy">
+            Peak +Gx chest-to-back loading compresses the rib cage and diaphragm, reducing tidal
+            volume and driving rapid, shallow breathing. Blood weight triples; cardiac output rises
+            to ~9 L/min with heart rate near 135 bpm. Abdominal viscera compress posteriorly against
+            the spine, and plasma catecholamines surge through the ascent window.
+          </p>
+          <span class="aside">4.2 Gx · 135 BPM · Adrenaline surge</span>
+        </article>
+
+        <article data-beat="fluid" data-scene="act3">
+          <span class="beat-marker">Beat 02 · Fluid Shift</span>
+          <h3>Two litres of blood <em>move up</em>.</h3>
+          <p class="kid-copy">
+            Main engine cutoff — and gravity is gone. Within hours, roughly <strong>two litres of fluid</strong>
+            drift from the legs into the chest and face. Crews call it "puffy face, chicken legs".
+            The brain senses fullness and starts to purge the extra volume, so the body ends up with
+            <em>less</em> total fluid than it started with.
+          </p>
+          <p class="science-copy">
+            Microgravity removes the hydrostatic gradient. ~2 L shifts cephalad within the first
+            hours, distending jugular veins and elevating intracranial pressure. The kidneys respond
+            with a diuresis that reduces plasma volume by 10–15% over weeks. SANS — Spaceflight
+            Associated Neuro-ocular Syndrome — is observed in a majority of long-duration crew.
+          </p>
+          <span class="aside">+2 L cephalad · −15% plasma volume</span>
+        </article>
+
+        <article data-beat="bone" data-scene="act3">
+          <span class="beat-marker">Beat 03 · Structural Change</span>
+          <h3>Bone and muscle, <em>unloaded</em>.</h3>
+          <p class="kid-copy">
+            Bones stay strong by being pushed and pulled every day. Without gravity, they stop being
+            pushed — and start thinning at roughly <strong>1 to 1.5% per month</strong>. Muscles waste
+            the same way. Two hours of hard exercise a day on orbit only partly offsets the loss;
+            some of it never comes back.
+          </p>
+          <p class="science-copy">
+            BMD falls ~1–1.5%/month in hip and spine without countermeasures, while muscle
+            cross-sectional area drops 1–5%/week. Resistive loading (ARED) plus aerobic work limits
+            BMD loss to under 1%/month. Trabecular deficits incurred over six months are only
+            partially recovered after return; some persist for years.
+          </p>
+          <span class="aside">−1.5% BMD/month · ARED · partial recovery</span>
+        </article>
+
+        <article data-beat="return" data-scene="act3">
+          <span class="beat-marker">Beat 04 · Return</span>
+          <h3>Coming home <em>hurts a little</em>.</h3>
+          <p class="kid-copy">
+            Landing is stranger than launch. The body has unlearned gravity — so standing up makes
+            it faint, and the brain has to re-balance itself all over again. It usually takes two to
+            six weeks. The bone that was lost does not fully come back.
+          </p>
+          <p class="science-copy">
+            Post-flight orthostatic intolerance affects a majority of returning crew: plasma volume
+            remains reduced and baroreflex sensitivity is blunted until reconditioning restores both
+            over 2–6 weeks. Vestibular re-adaptation (sensory conflict, motion sickness) resolves on
+            the same timescale. Bone lost in flight is only partially recovered.
+          </p>
+          <span class="aside">Orthostatic intolerance · 2–6 weeks to readapt</span>
+        </article>
+      </div>
+    </div>
+
+    <!-- Epilogue -->
+    <section class="epilogue">
+      <span class="eyebrow">End of the journey</span>
+      <h2>The body is never <em>really</em> home. It's always adapting.</h2>
+      <p class="kid-copy">
+        Every organ you met on this scroll was shaped by one constant force — and every astronaut
+        who leaves Earth is a small, deliberate experiment in what happens when that force
+        disappears. HEALTH-E exists to make that experiment legible to anyone curious enough to
+        follow along.
+      </p>
+      <p class="science-copy">
+        The physiological adaptations explored across these three acts — hydrostatic reorganisation,
+        axial unloading, vestibular recalibration, and structural remodelling — represent the
+        current frontier of NASA Human Research Program investigation. Understanding them is not
+        only essential for safe long-duration spaceflight; it is how we learn what the human body
+        is capable of, and where its limits still lie.
+      </p>
+      <a href="index.html" class="back-cta">← Back to HEALTH-E home</a>
+    </section>
+
+    <footer class="story-footer">
+      © 2026 <strong>Team MYTHs</strong> — NASA Space Apps Cairo 2026 · Astronauts Health Challenge
+    </footer>
+  </div>
+
+  <!-- ============================================================
+     SHARED COPYRIGHT BAR (landing + journey only)
+============================================================ -->
+  <footer class="copyright-bar">
+    © 2026 <strong>Team MYTHs</strong> — NASA Space Apps Cairo 2026 · Astronauts Health Challenge
+  </footer>
+
+  <!-- ============================================================
+     IMPORT MAP
+============================================================ -->
+  <script type="importmap">
+{
+  "imports": {
+    "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
+
+  <!-- ============================================================
+     INDEX MODULE — three.js (landing + journey)
+============================================================ -->
+  <script type="module">
+    import * as THREE from 'three';
+    import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+
+    const state = {
+      view: 'landing',
+      mode: 'kid',
+      chapter: 1,
+      gravity: 1.0,
+      gLoad: 1.0,
+      fluidShift: 100,
+      ared: false,
+      vacuumMode: 'real',
+      readapt: 0,
+      microbes: true,
+      hydro: true,
+      bpm: 62
+    };
+
+    /* STARFIELD */
+    (function initStarfield() {
+      const canvas = document.getElementById('space-canvas');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      let stars = [];
+      let w = 0, h = 0;
+
+      function resize() {
+        w = canvas.width = canvas.clientWidth * Math.min(window.devicePixelRatio || 1, 2);
+        h = canvas.height = canvas.clientHeight * Math.min(window.devicePixelRatio || 1, 2);
+        const count = Math.min(220, Math.round((w * h) / 14000));
+        stars = [];
+        for (let i = 0; i < count; i++) {
+          stars.push({
+            x: Math.random() * w,
+            y: Math.random() * h,
+            r: Math.random() * 1.4 + 0.3,
+            a: Math.random() * 0.6 + 0.2,
+            tw: Math.random() * 0.02 + 0.004,
+            ph: Math.random() * Math.PI * 2
+          });
+        }
+      }
+
+      function tick(t) {
+        ctx.clearRect(0, 0, w, h);
+        for (const s of stars) {
+          const alpha = s.a + Math.sin(t * s.tw + s.ph) * 0.18;
+          ctx.beginPath();
+          ctx.fillStyle = `rgba(240, 231, 212, ${Math.max(0.05, alpha)})`;
+          ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        requestAnimationFrame(tick);
+      }
+
+      window.addEventListener('resize', resize);
+      resize();
+      requestAnimationFrame(tick);
+    })();
+
+    /* VIEW ROUTER */
+    function setView(view) {
+      state.view = view;
+      document.body.classList.toggle('view-landing', view === 'landing');
+      document.body.classList.toggle('view-journey', view === 'journey');
+      document.body.classList.toggle('view-story', view === 'story');
+
+      window.scrollTo({ top: 0, behavior: 'auto' });
+
+      if (view === 'journey') {
+        buildChapterPills();
+        selectChapter(state.chapter, { scroll: false });
+        requestAnimationFrame(() => resizeSim());
+      }
+
+      if (view === 'story') {
+        setTimeout(() => window.dispatchEvent(new Event('resize')), 60);
+      }
+    }
+    window.setView = setView;
+
+    /* MODE TOGGLE — unified across all views */
+    function setMode(mode) {
+      state.mode = mode;
+      document.body.classList.toggle('mode-kid', mode === 'kid');
+      document.body.classList.toggle('mode-adult', mode === 'adult');
+      document.body.classList.toggle('mode-science', mode === 'adult');
+
+      document.querySelectorAll('[data-mode-toggle] .mode-pill').forEach((pill) => {
+        const isActive =
+          (pill.dataset.modePill === 'kid' && mode === 'kid') ||
+          (pill.dataset.modePill !== 'kid' && mode === 'adult');
+        pill.classList.toggle('is-active', isActive);
+      });
+
+      // SAVE TO LOCAL STORAGE
+      localStorage.setItem('healthEMode', mode);
+    }
+    window.setMode = setMode;
+
+    document.querySelectorAll('[data-mode-toggle]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        setMode(state.mode === 'kid' ? 'adult' : 'kid');
+      });
+    });
+
+    /* CHAPTER PILLS + CARD SELECTION */
+    function buildChapterPills() {
+      const nav = document.getElementById('chapter-pills');
+      if (!nav) return;
+      nav.innerHTML = '';
+      for (let i = 1; i <= 7; i++) {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.textContent = String(i);
+        b.dataset.pill = String(i);
+        b.addEventListener('click', () => selectChapter(i));
+        nav.appendChild(b);
+      }
+    }
+
+    function selectChapter(n, opts = {}) {
+      state.chapter = n;
+      document.querySelectorAll('.chapter-card').forEach((c) => {
+        c.classList.toggle('is-active', Number(c.dataset.chapter) === n);
+      });
+      document.querySelectorAll('.widget').forEach((w) => {
+        w.classList.toggle('is-active', Number(w.dataset.widget) === n);
+      });
+      document.querySelectorAll('.chapter-pills button').forEach((b) => {
+        b.classList.toggle('is-active', Number(b.dataset.pill) === n);
+      });
+      const hud = document.getElementById('hud-chapter');
+      if (hud) hud.textContent = `Stage ${n} / 7`;
+
+      if (opts.scroll !== false) {
+        const card = document.querySelector(`.chapter-card[data-chapter="${n}"]`);
+        if (card) card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+      applySimStage(n);
+    }
+
+    document.querySelectorAll('.chapter-card').forEach((card) => {
+      card.addEventListener('click', () => selectChapter(Number(card.dataset.chapter)));
+      card.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          selectChapter(Number(card.dataset.chapter));
+        }
+      });
+    });
+
+    // ============================================================
+    // UPDATED ROUTING: Hook cards go to the Story page
+    // ============================================================
+    document.querySelectorAll('.hook-card').forEach((card) => {
+      card.addEventListener('click', () => {
+        setView('story');
+      });
+    });
+
+    /* NAV BUTTONS */
+    // ============================================================
+    // UPDATED ROUTING: Primary action buttons go to the Story page
+    // ============================================================
+    document.getElementById('btn-start')?.addEventListener('click', () => setView('story'));
+    document.getElementById('btn-start-2')?.addEventListener('click', () => setView('story'));
+
+    /* Handle Global Nav Clicks for Smooth Scrolling / View Switching */
+    document.getElementById('nav-about')?.addEventListener('click', (e) => {
+      e.preventDefault();
+      setView('landing');
+      setTimeout(() => {
+        document.getElementById('about')?.scrollIntoView({ behavior: 'smooth' });
+      }, 100);
+    });
+
+    document.getElementById('nav-story')?.addEventListener('click', (e) => {
+      e.preventDefault();
+      setView('story');
+    });
+
+    /* Back-to-home links (data-view="landing") */
+    document.querySelectorAll('[data-view]').forEach((el) => {
+      el.addEventListener('click', (e) => {
+        e.preventDefault();
+        const target = el.dataset.view;
+        if (target && typeof setView === 'function') setView(target);
+      });
+    });
+
+    /* HERO — floating astronaut with hover-shake + rim glow */
+    function initHeroAstronaut() {
+      const canvas = document.getElementById('hero-astro-canvas');
+      if (!canvas) return;
+
+      const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+      renderer.outputColorSpace = THREE.SRGBColorSpace;
+
+      const scene = new THREE.Scene();
+      const camera = new THREE.PerspectiveCamera(35, 1, 0.1, 100);
+      camera.position.set(0, 0, 8);
+
+      scene.add(new THREE.AmbientLight(0xfff5e6, 0.9));
+      const keyLight = new THREE.DirectionalLight(0xfff5e6, 2.0);
+      keyLight.position.set(3, 5, 4);
+      scene.add(keyLight);
+      const blueLight = new THREE.PointLight(0xC14424, 15, 20);
+      blueLight.position.set(-2, 1, 3);
+      scene.add(blueLight);
+      const rimLight = new THREE.PointLight(0xD3BBA0, 6, 15);
+      rimLight.position.set(2, -1, -2);
+      scene.add(rimLight);
+
+      const modelGroup = new THREE.Group();
+      scene.add(modelGroup);
+
+      const loader = new GLTFLoader();
+      loader.load(
+        'Astronaut.glb',
+        (gltf) => {
+          const model = gltf.scene;
+
+          const box = new THREE.Box3().setFromObject(model);
+          const size = box.getSize(new THREE.Vector3());
+          const center = box.getCenter(new THREE.Vector3());
+          model.position.sub(center);
+          const maxDim = Math.max(size.x, size.y, size.z);
+          model.scale.setScalar(4 / maxDim);
+
+          const suitTint = 0.14;
+          const rimColor = new THREE.Color(0xC14424);
+          const rimPower = 2.6;
+          const rimIntensity = 1.15;
+          const tintColor = new THREE.Color(0xC14424);
+          const emissiveColor = new THREE.Color(0x2a1008);
+
+          const applyRimShader = (material) => {
+            material.onBeforeCompile = (shader) => {
+              shader.uniforms.uRimColor = { value: rimColor };
+              shader.uniforms.uRimPower = { value: rimPower };
+              shader.uniforms.uRimIntensity = { value: rimIntensity };
+
+              shader.vertexShader = shader.vertexShader.replace(
+                '#include <common>',
+                `#include <common>
+             varying vec3 vRimNormal;
+             varying vec3 vRimViewDir;
+            `
+              );
+              shader.vertexShader = shader.vertexShader.replace(
+                '#include <defaultnormal_vertex>',
+                `#include <defaultnormal_vertex>
+             vRimNormal = normalize(transformedNormal);
+            `
+              );
+              shader.vertexShader = shader.vertexShader.replace(
+                '#include <project_vertex>',
+                `#include <project_vertex>
+             vRimViewDir = normalize(-mvPosition.xyz);
+            `
+              );
+              shader.fragmentShader = shader.fragmentShader.replace(
+                '#include <common>',
+                `#include <common>
+             uniform vec3  uRimColor;
+             uniform float uRimPower;
+             uniform float uRimIntensity;
+             varying vec3  vRimNormal;
+             varying vec3  vRimViewDir;
+            `
+              );
+              shader.fragmentShader = shader.fragmentShader.replace(
+                '#include <dithering_fragment>',
+                `#include <dithering_fragment>
+             float rim = pow(1.0 - max(dot(vRimNormal, vRimViewDir), 0.0), uRimPower);
+             gl_FragColor.rgb += uRimColor * rim * uRimIntensity;
+            `
+              );
+            };
+            material.needsUpdate = true;
+          };
+
+          model.traverse((child) => {
+            if (!child.isMesh) return;
+            const mats = Array.isArray(child.material) ? child.material : [child.material];
+            mats.forEach((m) => {
+              if (!m) return;
+              if (m.color && m.color.isColor) m.color.lerp(tintColor, suitTint);
+              if ('emissive' in m) {
+                m.emissive = emissiveColor.clone();
+                m.emissiveIntensity = 0.35;
+              }
+              if ('envMapIntensity' in m) m.envMapIntensity = 1.4;
+              if ('roughness' in m && m.roughness > 0.7) m.roughness = 0.7;
+              applyRimShader(m);
+            });
+          });
+
+          modelGroup.add(model);
+
+          if (gltf.animations && gltf.animations.length > 0) {
+            const mixer = new THREE.AnimationMixer(model);
+            mixer.clipAction(gltf.animations[0]).play();
+            scene.userData.mixer = mixer;
+          }
+
+          canvas.classList.add('is-loaded');
+        },
+        undefined,
+        (err) => console.error('✗ Failed to load Astronaut.glb', err)
+      );
+
+      const raycaster = new THREE.Raycaster();
+      const pointer = new THREE.Vector2();
+      let isHovered = false;
+      let hoverLerp = 0;
+      let shakePhase = 0;
+
+      canvas.addEventListener('pointermove', (e) => {
+        const rect = canvas.getBoundingClientRect();
+        pointer.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+        pointer.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+        raycaster.setFromCamera(pointer, camera);
+        const hits = raycaster.intersectObject(modelGroup, true);
+        isHovered = hits.length > 0;
+        canvas.style.cursor = isHovered ? 'pointer' : 'default';
+      });
+      canvas.addEventListener('pointerleave', () => {
+        isHovered = false;
+        canvas.style.cursor = 'default';
+      });
+
+      const hero = document.getElementById('hero');
+      const heroInner = hero ? hero.querySelector('.hero-inner') : null;
+      let targetProgress = 0;
+      let smoothProgress = 0;
+
+      function readProgress() {
+        if (!hero) return 0;
+        const rect = hero.getBoundingClientRect();
+        const total = hero.offsetHeight - window.innerHeight;
+        if (total <= 0) return 0;
+        return Math.min(1, Math.max(0, -rect.top / total));
+      }
+      function onScroll() { targetProgress = readProgress(); }
+
+      function resize() {
+        const w = canvas.clientWidth;
+        const h = canvas.clientHeight;
+        if (w === 0 || h === 0) return;
+        renderer.setSize(w, h, false);
+        camera.aspect = w / h;
+        camera.updateProjectionMatrix();
+      }
+
+      const clock = new THREE.Clock();
+      const deg2rad = Math.PI / 180;
+
+      function tick() {
+        requestAnimationFrame(tick);
+        const dt = clock.getDelta();
+        const t = clock.elapsedTime;
+        if (state.view !== 'landing') return;
+
+        smoothProgress += (targetProgress - smoothProgress) * 0.075;
+        const isMobile = window.innerWidth < 720;
+        const floatT = t * 0.5;
+        const astroHomeX = isMobile ? 1.4 : 2.4;
+
+        const targetHover = isHovered ? 1 : 0;
+        hoverLerp += (targetHover - hoverLerp) * Math.min(1, dt * 8);
+        if (hoverLerp > 0.001) shakePhase += dt * 25;
+
+        let asX = astroHomeX + Math.sin(floatT * 1.1) * 0.06 + smoothProgress * 2.0;
+        let asY = Math.sin(floatT * 0.9) * 0.10 + smoothProgress * 3.0;
+        let asZ = -3.0 - smoothProgress * 6.0;
+
+        if (hoverLerp > 0.001) {
+          const amp = 0.045 * hoverLerp;
+          asX += Math.sin(shakePhase * 13.1) * amp;
+          asY += Math.sin(shakePhase * 17.3) * amp;
+          asZ += Math.sin(shakePhase * 15.7) * amp * 0.6;
+        }
+
+        modelGroup.position.set(asX, asY, asZ);
+
+        let ry = -0.35 + Math.sin(floatT * 0.7) * (15 * deg2rad);
+        let rx = Math.sin(floatT * 0.9 + 1.3) * (8 * deg2rad);
+        let rz = Math.sin(floatT * 0.6 + 2.7) * (5 * deg2rad);
+        if (hoverLerp > 0.001) {
+          ry += Math.sin(shakePhase * 11.7) * 0.10 * hoverLerp;
+          rx += Math.sin(shakePhase * 14.3) * 0.06 * hoverLerp;
+        }
+        modelGroup.rotation.set(rx, ry, rz);
+
+        modelGroup.visible = smoothProgress < 0.97;
+
+        if (heroInner) {
+          heroInner.style.opacity = String(THREE.MathUtils.lerp(1, 0.15, smoothProgress));
+        }
+        if (scene.userData.mixer) scene.userData.mixer.update(dt);
+
+        renderer.render(scene, camera);
+      }
+
+      window.addEventListener('scroll', onScroll, { passive: true });
+      window.addEventListener('resize', resize);
+      requestAnimationFrame(() => { resize(); onScroll(); tick(); });
+    }
+
+    /* JOURNEY SIMULATOR */
+    let simState = null;
+
+    function resizeSim() {
+      if (!simState) return;
+      const wrap = document.getElementById('sim-canvas-wrap');
+      if (!wrap) return;
+      const w = wrap.clientWidth;
+      const h = wrap.clientHeight;
+      if (w === 0 || h === 0) return;
+      simState.renderer.setSize(w, h, false);
+      simState.camera.aspect = w / h;
+      simState.camera.updateProjectionMatrix();
+    }
+
+    function initSimulator() {
+      const canvas = document.getElementById('sim-canvas');
+      if (!canvas) return;
+
+      const scene = new THREE.Scene();
+      const camera = new THREE.PerspectiveCamera(40, 4 / 3, 0.1, 100);
+      camera.position.set(0, 0.1, 6.5);
+
+      const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+
+      scene.add(new THREE.AmbientLight(0xD3BBA0, 0.9));
+      const key = new THREE.DirectionalLight(0xfff5e6, 1.2);
+      key.position.set(3, 4, 5);
+      scene.add(key);
+      const fill = new THREE.PointLight(0xC14424, 1.4, 12);
+      fill.position.set(-3, 1, 4);
+      scene.add(fill);
+      const rim = new THREE.PointLight(0xD3BBA0, 0.9, 10);
+      rim.position.set(2, -2, -3);
+      scene.add(rim);
+
+      const bodyMat = new THREE.MeshPhysicalMaterial({
+        color: 0xC14424, transparent: true, opacity: 0.16,
+        roughness: 0.4, metalness: 0.05, transmission: 0.6,
+        thickness: 0.6, clearcoat: 0.4, side: THREE.DoubleSide
+      });
+      const bodyGroup = new THREE.Group();
+      scene.add(bodyGroup);
+
+      bodyGroup.add(Object.assign(new THREE.Mesh(new THREE.CapsuleGeometry(0.85, 1.5, 8, 24), bodyMat), { position: new THREE.Vector3(0, 0.15, 0) }));
+      bodyGroup.add(Object.assign(new THREE.Mesh(new THREE.SphereGeometry(0.55, 32, 32), bodyMat), { position: new THREE.Vector3(0, 1.55, 0) }));
+
+      const limbMat = new THREE.MeshPhysicalMaterial({
+        color: 0xC14424, transparent: true, opacity: 0.12,
+        roughness: 0.5, side: THREE.DoubleSide
+      });
+      const limbGeo = new THREE.CapsuleGeometry(0.16, 0.9, 6, 16);
+      const armL = new THREE.Mesh(limbGeo, limbMat); armL.position.set(-1.0, 0.55, 0); armL.rotation.z = 0.28;
+      const armR = new THREE.Mesh(limbGeo, limbMat); armR.position.set(1.0, 0.55, 0); armR.rotation.z = -0.28;
+      bodyGroup.add(armL, armR);
+
+      const legGeo = new THREE.CapsuleGeometry(0.22, 1.1, 6, 16);
+      const legL = new THREE.Mesh(legGeo, limbMat); legL.position.set(-0.38, -1.15, 0);
+      const legR = new THREE.Mesh(legGeo, limbMat); legR.position.set(0.38, -1.15, 0);
+      bodyGroup.add(legL, legR);
+
+      const brainMat = new THREE.MeshStandardMaterial({ color: 0xf0abfc, emissive: 0x831843, emissiveIntensity: 0.35, roughness: 0.6 });
+      const brain = new THREE.Mesh(new THREE.SphereGeometry(0.36, 24, 24), brainMat);
+      brain.position.set(0, 1.62, 0);
+      bodyGroup.add(brain);
+
+      const heartMat = new THREE.MeshStandardMaterial({ color: 0xef4444, emissive: 0x7f1d1d, emissiveIntensity: 0.5, roughness: 0.4 });
+      const heart = new THREE.Mesh(new THREE.SphereGeometry(0.22, 20, 20), heartMat);
+      heart.position.set(-0.18, 0.55, 0.15);
+      bodyGroup.add(heart);
+
+      const lungMat = new THREE.MeshStandardMaterial({ color: 0xfda4af, emissive: 0x4c0519, emissiveIntensity: 0.2, roughness: 0.7, transparent: true, opacity: 0.85 });
+      const lungL = new THREE.Mesh(new THREE.SphereGeometry(0.28, 16, 16), lungMat);
+      lungL.position.set(-0.36, 0.55, 0); lungL.scale.set(0.9, 1.3, 0.9);
+      const lungR = lungL.clone(); lungR.position.x = 0.36;
+      bodyGroup.add(lungL, lungR);
+
+      const spineMat = new THREE.MeshStandardMaterial({ color: 0xfcd34d, emissive: 0x6b4a00, emissiveIntensity: 0.2, roughness: 0.5 });
+      const spine = new THREE.Group();
+      for (let i = 0; i < 8; i++) {
+        const v = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 0.08, 12), spineMat);
+        v.position.y = -0.55 + i * 0.16;
+        spine.add(v);
+      }
+      spine.position.set(0, 0.35, -0.28);
+      bodyGroup.add(spine);
+
+      const boneMat = new THREE.MeshStandardMaterial({ color: 0xf8fafc, emissive: 0x94a3b8, emissiveIntensity: 0.2, roughness: 0.5 });
+      const femurGeo = new THREE.CylinderGeometry(0.09, 0.09, 0.8, 14);
+      const femurL = new THREE.Mesh(femurGeo, boneMat); femurL.position.set(-0.38, -1.25, 0);
+      const femurR = new THREE.Mesh(femurGeo, boneMat); femurR.position.set(0.38, -1.25, 0);
+      bodyGroup.add(femurL, femurR);
+
+      const microbeGeo = new THREE.SphereGeometry(0.045, 6, 6);
+      const microbeMat = new THREE.MeshStandardMaterial({ color: 0x6ee7b7, emissive: 0x065f46, emissiveIntensity: 0.6 });
+      const microbes = new THREE.Group();
+      for (let i = 0; i < 28; i++) {
+        const m = new THREE.Mesh(microbeGeo, microbeMat);
+        m.position.set((Math.random() - 0.5) * 0.8, -0.25 + (Math.random() - 0.5) * 0.4, (Math.random() - 0.5) * 0.4);
+        microbes.add(m);
+      }
+      bodyGroup.add(microbes);
+
+      const hydro = new THREE.Group();
+      const stemMat = new THREE.MeshStandardMaterial({ color: 0x16a34a, emissive: 0x14532d, emissiveIntensity: 0.4 });
+      const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 0.35, 8), stemMat);
+      stem.position.y = 0.18;
+      hydro.add(stem);
+      const leafMat = new THREE.MeshStandardMaterial({ color: 0x4ade80, emissive: 0x166534, emissiveIntensity: 0.3 });
+      for (let i = 0; i < 3; i++) {
+        const leaf = new THREE.Mesh(new THREE.SphereGeometry(0.09, 10, 10), leafMat);
+        leaf.scale.set(1, 0.4, 0.6);
+        leaf.position.set(Math.cos(i * 2.1) * 0.12, 0.28 + i * 0.03, Math.sin(i * 2.1) * 0.12);
+        hydro.add(leaf);
+      }
+      hydro.position.set(1.4, -1.9, 0);
+      bodyGroup.add(hydro);
+
+      function bodyHaloTexture() {
+        const s = 256;
+        const c = document.createElement('canvas');
+        c.width = c.height = s;
+        const ctx = c.getContext('2d');
+        const g = ctx.createRadialGradient(s / 2, s / 2, 0, s / 2, s / 2, s / 2);
+        g.addColorStop(0, 'rgba(193, 68, 36, 0.55)');
+        g.addColorStop(0.6, 'rgba(193, 68, 36, 0.08)');
+        g.addColorStop(1, 'rgba(193, 68, 36, 0)');
+        ctx.fillStyle = g;
+        ctx.fillRect(0, 0, s, s);
+        return new THREE.CanvasTexture(c);
+      }
+      const halo = new THREE.Sprite(new THREE.SpriteMaterial({
+        map: bodyHaloTexture(), transparent: true, opacity: 0.55,
+        blending: THREE.AdditiveBlending, depthWrite: false
+      }));
+      halo.scale.set(6, 6, 1);
+      halo.position.z = -1.5;
+      scene.add(halo);
+
+      simState = {
+        renderer, scene, camera,
+        bodyGroup, brain, heart, lungs: [lungL, lungR],
+        femurL, femurR, microbes, hydro, heartMat,
+        clock: new THREE.Clock()
+      };
+
+      function tick() {
+        requestAnimationFrame(tick);
+        if (state.view !== 'journey') {
+          renderer.render(scene, camera);
+          return;
+        }
+        const t = simState.clock.getElapsedTime();
+        bodyGroup.position.y = Math.sin(t * 0.9) * 0.04;
+        bodyGroup.rotation.y = Math.sin(t * 0.4) * 0.15;
+
+        const beat = state.bpm / 60;
+        const pulse = 1 + Math.sin(t * Math.PI * 2 * beat) * 0.12;
+        heart.scale.setScalar(pulse);
+
+        const breath = 1 + Math.sin(t * 1.2) * 0.06;
+        lungL.scale.set(0.9 * breath, 1.3 * breath, 0.9 * breath);
+        lungR.scale.set(0.9 * breath, 1.3 * breath, 0.9 * breath);
+
+        microbes.visible = state.microbes;
+        if (state.microbes) {
+          microbes.children.forEach((m, i) => {
+            m.position.x += Math.sin(t * 2 + i) * 0.0008;
+            m.position.y += Math.cos(t * 1.6 + i) * 0.0008;
+          });
+        }
+        hydro.visible = state.hydro;
+        renderer.render(scene, camera);
+      }
+
+      window.addEventListener('resize', resizeSim);
+      requestAnimationFrame(() => { resizeSim(); tick(); });
+    }
+
+    function applySimStage(n) {
+      if (!simState) return;
+      const { heart, heartMat, femurL, femurR, brain } = simState;
+
+      heart.position.set(-0.18, 0.55, 0.15);
+      heartMat.emissiveIntensity = 0.5;
+      femurL.scale.setScalar(1);
+      femurR.scale.setScalar(1);
+      brain.scale.setScalar(1);
+
+      switch (n) {
+        case 1: state.bpm = 62; break;
+        case 2:
+          state.bpm = 62 + Math.round((state.gLoad - 1) * 12);
+          heartMat.emissiveIntensity = 0.9;
+          break;
+        case 3:
+          brain.scale.setScalar(1 + state.fluidShift / 100 * 0.18);
+          state.bpm = 78;
+          break;
+        case 4: {
+          const density = state.ared ? 0.94 : 0.80;
+          femurL.scale.set(density, density, density);
+          femurR.scale.set(density, density, density);
+          state.bpm = 72;
+          break;
+        }
+        case 5: state.bpm = 92; heartMat.emissiveIntensity = 0.8; break;
+        case 6: state.bpm = 62 + Math.round((100 - state.readapt) * 0.15); break;
+        case 7: state.bpm = 70; break;
+      }
+      const hud = document.getElementById('hud-bpm');
+      if (hud) hud.textContent = `♥ ${state.bpm} bpm`;
+    }
+
+    /* WIDGET INPUTS */
+    const inGravity = document.getElementById('in-gravity');
+    const outGravity = document.getElementById('out-gravity');
+    inGravity?.addEventListener('input', (e) => {
+      state.gravity = Number(e.target.value) / 100;
+      if (outGravity) outGravity.textContent = `${state.gravity.toFixed(2)} G`;
+    });
+
+    const inGload = document.getElementById('in-gload');
+    const outGload = document.getElementById('out-gload');
+    const outBpm = document.getElementById('out-bpm');
+    inGload?.addEventListener('input', (e) => {
+      const v = Number(e.target.value) / 100;
+      state.gLoad = v;
+      if (outGload) outGload.textContent = `${v.toFixed(1)} G`;
+      state.bpm = 62 + Math.round((v - 1) * 12);
+      if (outBpm) outBpm.textContent = `${state.bpm} bpm`;
+      const hud = document.getElementById('hud-bpm');
+      if (hud) hud.textContent = `♥ ${state.bpm} bpm`;
+    });
+
+    const inFluid = document.getElementById('in-fluid');
+    const outFluid = document.getElementById('out-fluid');
+    inFluid?.addEventListener('input', (e) => {
+      const v = Number(e.target.value);
+      state.fluidShift = v;
+      if (outFluid) outFluid.textContent = `${v}%`;
+      if (simState) simState.brain.scale.setScalar(1 + (v / 100) * 0.18);
+    });
+
+    const btnAred = document.getElementById('btn-ared');
+    const boneMeter = document.getElementById('bone-meter');
+    const outBone = document.getElementById('out-bone');
+    btnAred?.addEventListener('click', () => {
+      state.ared = !state.ared;
+      btnAred.setAttribute('aria-pressed', String(state.ared));
+      btnAred.textContent = state.ared ? 'Exercise active — protecting bones' : 'Activate 2-hr daily exercise';
+      const bmd = state.ared ? 98.5 : 91.0;
+      if (boneMeter) boneMeter.style.width = `${bmd}%`;
+      if (outBone) outBone.textContent = `${bmd.toFixed(1)}%`;
+      if (simState) {
+        const s = state.ared ? 0.98 : 0.80;
+        simState.femurL.scale.set(s, s, s);
+        simState.femurR.scale.set(s, s, s);
+      }
+    });
+
+    const btnMyth = document.getElementById('btn-vacuum-myth');
+    const btnReal = document.getElementById('btn-vacuum-real');
+    const outVacuum = document.getElementById('out-vacuum');
+    const VACUUM_TEXT = {
+      myth: 'In the movies, astronauts <strong>explode</strong> in a shower of ice. Dramatic — and wrong. Skin is stronger than Hollywood thinks.',
+      real: 'Your body does <strong>not</strong> explode. Skin tension contains the pressure difference; the real danger is ebullism and hypoxia.'
+    };
+    function setVacuumMode(mode) {
+      state.vacuumMode = mode;
+      btnMyth?.classList.toggle('is-active', mode === 'myth');
+      btnReal?.classList.toggle('is-active', mode === 'real');
+      if (outVacuum) outVacuum.innerHTML = VACUUM_TEXT[mode];
+    }
+    btnMyth?.addEventListener('click', () => setVacuumMode('myth'));
+    btnReal?.addEventListener('click', () => setVacuumMode('real'));
+
+    const inReadapt = document.getElementById('in-readapt');
+    const outReadapt = document.getElementById('out-readapt');
+    inReadapt?.addEventListener('input', (e) => {
+      state.readapt = Number(e.target.value);
+      if (outReadapt) outReadapt.textContent = `${state.readapt}%`;
+    });
+
+    const btnMicrobes = document.getElementById('btn-microbes');
+    const btnHydro = document.getElementById('btn-hydro');
+    btnMicrobes?.addEventListener('click', () => {
+      state.microbes = !state.microbes;
+      btnMicrobes.classList.toggle('is-on', state.microbes);
+      btnMicrobes.setAttribute('aria-pressed', String(state.microbes));
+    });
+    btnHydro?.addEventListener('click', () => {
+      state.hydro = !state.hydro;
+      btnHydro.classList.toggle('is-on', state.hydro);
+      btnHydro.setAttribute('aria-pressed', String(state.hydro));
+    });
+
+    /* BOOT */
+    const savedMode = localStorage.getItem('healthEMode') || 'kid';
+    setMode(savedMode);
+
+    // Check hash on initial page load for deep linking
+    const initialHash = window.location.hash.replace('#', '');
+    if (initialHash === 'story' || initialHash === 'journey') {
+      setView(initialHash);
+    } else if (initialHash === 'about') {
+      setView('landing');
+      setTimeout(() => {
+        document.getElementById('about')?.scrollIntoView({ behavior: 'smooth' });
+      }, 100);
+    } else {
+      setView('landing');
+    }
+
+    // Support browser back/forward buttons
+    window.addEventListener('popstate', () => {
+      const hash = window.location.hash.replace('#', '');
+      if (hash === 'story' || hash === 'journey') {
+        setView(hash);
+      } else {
+        setView('landing');
+      }
+    });
+
+    initHeroAstronaut();
+    initSimulator();
+    buildChapterPills();
+    selectChapter(1, { scroll: false });
+  </script>
+
+  <!-- ============================================================
+     STORY PLAIN SCRIPT — 3-act scrollytelling
+============================================================ -->
+  <script>
+    (function initStoryProgress() {
+      const fill = document.getElementById('progress-fill');
+      if (!fill) return;
+      window.addEventListener('scroll', () => {
+        const scrollTop = window.scrollY;
+        const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+        const pct = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
+        fill.style.width = pct + '%';
+      }, { passive: true });
+    })();
+
+    (function initDust() {
+      const canvas = document.getElementById('dust-canvas');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      let particles = [];
+      let w = 0, h = 0;
+
+      function resize() {
+        const dpr = Math.min(window.devicePixelRatio || 1, 2);
+        w = canvas.width = window.innerWidth * dpr;
+        h = canvas.height = window.innerHeight * dpr;
+        const count = Math.min(120, Math.round((w * h) / 22000));
+        particles = Array.from({ length: count }, () => ({
+          x: Math.random() * w,
+          y: Math.random() * h,
+          r: Math.random() * 1.4 + 0.3,
+          a: Math.random() * 0.4 + 0.1,
+          phase: Math.random() * Math.PI * 2
+        }));
+      }
+
+      window.addEventListener('resize', resize);
+      resize();
+
+      function loop(now) {
+        const t = now / 1000;
+        ctx.clearRect(0, 0, w, h);
+        for (const p of particles) {
+          const alpha = p.a + Math.sin(t * 1.3 + p.phase) * 0.1;
+          ctx.fillStyle = `rgba(240, 231, 212, ${Math.max(0.03, alpha)})`;
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        requestAnimationFrame(loop);
+      }
+      requestAnimationFrame(loop);
+    })();
+
+    /* BODY RENDERER */
+    function createBodyScene(canvas) {
+      const ctx = canvas.getContext('2d');
+      let W = 0, H = 0, DPR = 1;
+
+      const alphas = {
+        heart: 1, lungs: 0, abdomen: 0,
+        launch: 0, fluid: 0, bone: 0, return: 0
+      };
+      const targets = { ...alphas };
+
+      const current = {
+        bodyBob: 0, bodyWobble: 0, headPuff: 0, legShrink: 0,
+        abdCompress: 0, heartRate: 62, breathRate: 14
+      };
+      const goal = { ...current };
+
+      function resize() {
+        const rect = canvas.getBoundingClientRect();
+        if (rect.width === 0 || rect.height === 0) return;
+        DPR = Math.min(window.devicePixelRatio || 1, 2);
+        W = rect.width;
+        H = rect.height;
+        canvas.width = Math.round(W * DPR);
+        canvas.height = Math.round(H * DPR);
+        ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+      }
+
+      function setBeat(beat) {
+        for (const k in targets) targets[k] = 0;
+        targets[beat] = 1;
+
+        goal.bodyBob = 0; goal.bodyWobble = 0; goal.headPuff = 0;
+        goal.legShrink = 0; goal.abdCompress = 0;
+        goal.heartRate = 62; goal.breathRate = 14;
+
+        switch (beat) {
+          case 'launch':
+            goal.abdCompress = 1; goal.heartRate = 135; goal.breathRate = 32;
+            break;
+          case 'fluid':
+            goal.bodyBob = 1; goal.headPuff = 1; goal.legShrink = 1;
+            break;
+          case 'bone':
+            goal.bodyBob = 1; goal.legShrink = 0.7;
+            break;
+          case 'return':
+            goal.bodyWobble = 1;
+            break;
+        }
+      }
+
+      function drawBody(ctx, t, cx, cy, s) {
+        const bob = current.bodyBob * Math.sin(t * 1.1) * 5;
+        const wobble = current.bodyWobble * Math.sin(t * 2.8) * 0.06;
+
+        ctx.save();
+        ctx.translate(cx, cy + bob);
+        ctx.rotate(wobble);
+        ctx.scale(s, s);
+
+        const headR = 26 + current.headPuff * 4.5;
+        const legW = 15 - current.legShrink * 4;
+        const torsoW = 84 - current.abdCompress * 6;
+
+        ctx.fillStyle = 'rgba(211, 187, 160, 0.06)';
+        ctx.strokeStyle = 'rgba(211, 187, 160, 0.42)';
+        ctx.lineWidth = 1.6;
+
+        ctx.beginPath();
+        ctx.arc(0, -118, headR, 0, Math.PI * 2);
+        ctx.fill(); ctx.stroke();
+
+        ctx.beginPath();
+        ctx.roundRect(-torsoW / 2, -84, torsoW, 110, 22);
+        ctx.fill(); ctx.stroke();
+
+        ctx.beginPath();
+        ctx.roundRect(-62, -74, 15, 88, 7);
+        ctx.roundRect(47, -74, 15, 88, 7);
+        ctx.fill(); ctx.stroke();
+
+        ctx.beginPath();
+        ctx.roundRect(-32, 28, legW * 2, 108, legW);
+        ctx.roundRect(32 - legW * 2, 28, legW * 2, 108, legW);
+        ctx.fill(); ctx.stroke();
+
+        ctx.fillStyle = 'rgba(240, 231, 212, 0.25)';
+        for (let i = 0; i < 10; i++) {
+          ctx.beginPath();
+          ctx.roundRect(-4, -80 + i * 10.5, 8, 5, 1.5);
+          ctx.fill();
+        }
+
+        ctx.strokeStyle = 'rgba(240, 231, 212, 0.35)';
+        ctx.lineWidth = 5; ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.moveTo(-18, 42); ctx.lineTo(-18, 122);
+        ctx.moveTo(18, 42); ctx.lineTo(18, 122);
+        ctx.stroke();
+
+        ctx.fillStyle = 'rgba(211, 187, 160, 0.30)';
+        ctx.beginPath();
+        ctx.ellipse(0, -122, 15, 11, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.restore();
+      }
+
+      function drawHeartOverlay(ctx, t, cx, cy, s, a) {
+        if (a < 0.01) return;
+        const bob = current.bodyBob * Math.sin(t * 1.1) * 5;
+        const wobble = current.bodyWobble * Math.sin(t * 2.8) * 0.06;
+        ctx.save();
+        ctx.globalAlpha = a;
+        ctx.translate(cx, cy + bob); ctx.rotate(wobble); ctx.scale(s, s);
+
+        ctx.strokeStyle = 'rgba(193, 68, 36, 0.55)';
+        ctx.lineWidth = 1.8;
+        ctx.beginPath();
+        ctx.moveTo(-4, -54); ctx.lineTo(-4, -112);
+        ctx.moveTo(-4, -46); ctx.lineTo(-4, 40);
+        ctx.lineTo(-18, 118); ctx.lineTo(18, 118);
+        ctx.stroke();
+
+        const beat = 1 + Math.pow(Math.max(0, Math.sin(t * Math.PI * 2 * (current.heartRate / 60))), 4) * 0.28;
+        ctx.save();
+        ctx.translate(-5, -50); ctx.scale(beat, beat);
+        ctx.fillStyle = '#C14424'; ctx.shadowColor = '#C14424'; ctx.shadowBlur = 22;
+        ctx.beginPath(); ctx.arc(0, 0, 12, 0, Math.PI * 2); ctx.fill();
+        ctx.restore();
+
+        for (let i = 0; i < 26; i++) {
+          const phase = (t * (0.4 + (i % 4) * 0.1) + i * 0.37) % 1;
+          const py = 120 - phase * 230;
+          const px = Math.sin(i * 1.9 + t * 1.5) * 18;
+          ctx.fillStyle = 'rgba(240, 231, 212, 0.7)';
+          ctx.beginPath(); ctx.arc(px, py, 1.8, 0, Math.PI * 2); ctx.fill();
+        }
+        ctx.restore();
+      }
+
+      function drawLungsOverlay(ctx, t, cx, cy, s, a) {
+        if (a < 0.01) return;
+        const bob = current.bodyBob * Math.sin(t * 1.1) * 5;
+        const wobble = current.bodyWobble * Math.sin(t * 2.8) * 0.06;
+        ctx.save();
+        ctx.globalAlpha = a;
+        ctx.translate(cx, cy + bob); ctx.rotate(wobble); ctx.scale(s, s);
+
+        const breath = 1 + Math.sin(t * Math.PI * 2 * (current.breathRate / 60)) * 0.09;
+
+        ctx.fillStyle = 'rgba(123, 63, 58, 0.55)';
+        ctx.strokeStyle = 'rgba(211, 187, 160, 0.55)';
+        ctx.lineWidth = 1.4;
+        [-18, 18].forEach(lx => {
+          ctx.beginPath();
+          ctx.ellipse(lx, -46, 14 * breath, 26 * breath, 0, 0, Math.PI * 2);
+          ctx.fill(); ctx.stroke();
+        });
+
+        ctx.strokeStyle = 'rgba(240, 231, 212, 0.45)';
+        ctx.lineWidth = 1.4;
+        for (let r = 0; r < 5; r++) {
+          const ry = -68 + r * 10;
+          const rw = 32 - r * 1.5;
+          ctx.beginPath();
+          ctx.moveTo(-rw, ry);
+          ctx.quadraticCurveTo(0, ry + 5, rw, ry);
+          ctx.stroke();
+        }
+
+        const diapY = -22 + Math.sin(t * Math.PI * 2 * (current.breathRate / 60)) * 3;
+        ctx.strokeStyle = 'rgba(193, 68, 36, 0.85)';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(-30, diapY + 3);
+        ctx.quadraticCurveTo(0, diapY - 8, 30, diapY + 3);
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      function drawAbdomenOverlay(ctx, t, cx, cy, s, a) {
+        if (a < 0.01) return;
+        const bob = current.bodyBob * Math.sin(t * 1.1) * 5;
+        const wobble = current.bodyWobble * Math.sin(t * 2.8) * 0.06;
+        ctx.save();
+        ctx.globalAlpha = a;
+        ctx.translate(cx, cy + bob); ctx.rotate(wobble); ctx.scale(s, s);
+
+        ctx.fillStyle = 'rgba(123, 63, 58, 0.78)';
+        ctx.beginPath();
+        ctx.moveTo(-22, -14); ctx.lineTo(12, -14);
+        ctx.quadraticCurveTo(-4, 0, -22, -2);
+        ctx.closePath(); ctx.fill();
+
+        ctx.fillStyle = 'rgba(211, 187, 160, 0.6)';
+        ctx.beginPath(); ctx.ellipse(10, -8, 10, 7, -0.3, 0, Math.PI * 2); ctx.fill();
+
+        ctx.strokeStyle = 'rgba(240, 231, 212, 0.75)';
+        ctx.lineWidth = 2.6; ctx.lineCap = 'round';
+        for (let row = 0; row < 3; row++) {
+          const y = 6 + row * 6;
+          ctx.beginPath();
+          ctx.moveTo(-16, y);
+          ctx.bezierCurveTo(-6, y - 3, 6, y + 3, 16, y);
+          ctx.stroke();
+        }
+
+        const earX = -18, earY = -113;
+        ctx.strokeStyle = 'rgba(211, 187, 160, 0.9)';
+        ctx.lineWidth = 1.4;
+        ctx.beginPath(); ctx.arc(earX, earY, 6, 0, Math.PI * 2); ctx.stroke();
+        ctx.beginPath(); ctx.arc(earX + 2, earY - 3, 4, 0, Math.PI * 2); ctx.stroke();
+
+        const ang = t * 1.4;
+        ctx.fillStyle = 'rgba(193, 68, 36, 1)';
+        ctx.beginPath();
+        ctx.arc(earX + Math.cos(ang) * 4.5, earY + Math.sin(ang) * 4.5, 1.8, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      }
+
+      function drawLaunchOverlay(ctx, t, cx, cy, s, a) {
+        if (a < 0.01) return;
+        const bob = current.bodyBob * Math.sin(t * 1.1) * 5;
+        const wobble = current.bodyWobble * Math.sin(t * 2.8) * 0.06;
+        ctx.save();
+        ctx.globalAlpha = a;
+        ctx.translate(cx, cy + bob); ctx.rotate(wobble); ctx.scale(s, s);
+
+        const comp = current.abdCompress;
+        ctx.strokeStyle = 'rgba(193, 68, 36, 0.65)';
+        ctx.lineWidth = 1.6;
+        ctx.beginPath();
+        ctx.moveTo(-30, -8 + comp * 4);
+        ctx.quadraticCurveTo(0, -18 + comp * 6, 30, -8 + comp * 4);
+        ctx.stroke();
+
+        const beat = 1 + Math.pow(Math.max(0, Math.sin(t * Math.PI * 2 * (current.heartRate / 60))), 4) * 0.32;
+        ctx.save();
+        ctx.translate(-5, -50); ctx.scale(beat, beat);
+        ctx.fillStyle = 'rgba(193, 68, 36, 1)';
+        ctx.shadowColor = '#C14424'; ctx.shadowBlur = 26;
+        ctx.beginPath(); ctx.arc(0, 0, 12, 0, Math.PI * 2); ctx.fill();
+        ctx.restore();
+
+        const step = (t * 30) % 20;
+        ctx.fillStyle = 'rgba(193, 68, 36, 0.7)';
+        for (let x = -50; x <= 50; x += 25) {
+          ctx.beginPath();
+          ctx.moveTo(x - 4, -170 + step);
+          ctx.lineTo(x + 4, -170 + step);
+          ctx.lineTo(x, -158 + step);
+          ctx.closePath(); ctx.fill();
+        }
+        ctx.restore();
+      }
+
+      function drawFluidOverlay(ctx, t, cx, cy, s, a) {
+        if (a < 0.01) return;
+        const bob = current.bodyBob * Math.sin(t * 1.1) * 5;
+        const wobble = current.bodyWobble * Math.sin(t * 2.8) * 0.06;
+        ctx.save();
+        ctx.globalAlpha = a;
+        ctx.translate(cx, cy + bob); ctx.rotate(wobble); ctx.scale(s, s);
+
+        ctx.strokeStyle = 'rgba(193, 68, 36, 0.55)';
+        ctx.lineWidth = 1.8;
+        ctx.setLineDash([4, 4]);
+        ctx.beginPath(); ctx.arc(0, -118, 32, 0, Math.PI * 2); ctx.stroke();
+        ctx.setLineDash([]);
+
+        for (let i = 0; i < 30; i++) {
+          const phase = (t * (0.5 + (i % 3) * 0.15) + i * 0.33) % 1;
+          const py = 100 - phase * 220;
+          const px = Math.sin(i * 1.8 + t * 1.2) * 20;
+          ctx.fillStyle = phase < 0.4
+            ? 'rgba(193, 68, 36, 0.9)'
+            : 'rgba(240, 231, 212, 0.7)';
+          ctx.beginPath(); ctx.arc(px, py, 2, 0, Math.PI * 2); ctx.fill();
+        }
+
+        ctx.strokeStyle = 'rgba(193, 68, 36, 0.35)';
+        ctx.lineWidth = 1.5;
+        ctx.setLineDash([5, 5]);
+        ctx.beginPath(); ctx.moveTo(38, -160); ctx.lineTo(38, -40); ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.restore();
+      }
+
+      function drawBoneOverlay(ctx, t, cx, cy, s, a) {
+        if (a < 0.01) return;
+        const bob = current.bodyBob * Math.sin(t * 1.1) * 5;
+        const wobble = current.bodyWobble * Math.sin(t * 2.8) * 0.06;
+        ctx.save();
+        ctx.globalAlpha = a;
+        ctx.translate(cx, cy + bob); ctx.rotate(wobble); ctx.scale(s, s);
+
+        ctx.strokeStyle = 'rgba(240, 231, 212, 0.25)';
+        ctx.lineWidth = 1; ctx.setLineDash([3, 4]);
+        ctx.beginPath();
+        ctx.moveTo(-26, 42); ctx.lineTo(-26, 122);
+        ctx.moveTo(26, 42); ctx.lineTo(26, 122);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        const thin = 0.6 + (1 - current.legShrink) * 0.4;
+        ctx.strokeStyle = 'rgba(193, 68, 36, 0.85)';
+        ctx.lineWidth = 5 * thin; ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.moveTo(-18, 42); ctx.lineTo(-18, 122);
+        ctx.moveTo(18, 42); ctx.lineTo(18, 122);
+        ctx.stroke();
+
+        ctx.fillStyle = 'rgba(193, 68, 36, 0.5)';
+        for (let i = 0; i < 6; i++) {
+          const y = 55 + i * 10 + Math.sin(t + i) * 2;
+          ctx.beginPath();
+          ctx.arc(-18 + (i % 2 ? 3 : -3), y, 1.5, 0, Math.PI * 2);
+          ctx.arc(18 + (i % 2 ? -3 : 3), y, 1.5, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        ctx.restore();
+      }
+
+      function drawReturnOverlay(ctx, t, cx, cy, s, a) {
+        if (a < 0.01) return;
+        const bob = current.bodyBob * Math.sin(t * 1.1) * 5;
+        const wobble = current.bodyWobble * Math.sin(t * 2.8) * 0.06;
+        ctx.save();
+        ctx.globalAlpha = a;
+        ctx.translate(cx, cy + bob); ctx.rotate(wobble); ctx.scale(s, s);
+
+        ctx.strokeStyle = 'rgba(211, 187, 160, 0.5)';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath(); ctx.moveTo(-80, 145); ctx.lineTo(80, 145); ctx.stroke();
+
+        ctx.strokeStyle = 'rgba(193, 68, 36, 0.5)';
+        ctx.lineWidth = 1.5; ctx.setLineDash([4, 4]);
+        for (let i = 0; i < 3; i++) {
+          ctx.beginPath(); ctx.arc(0, -20, 60 + i * 8, -0.3, 0.3); ctx.stroke();
+          ctx.beginPath(); ctx.arc(0, -20, 60 + i * 8, Math.PI - 0.3, Math.PI + 0.3); ctx.stroke();
+        }
+        ctx.setLineDash([]);
+        ctx.restore();
+      }
+
+      function draw(t) {
+        if (!W || !H) return;
+
+        const k = 0.08;
+        for (const key in current) current[key] += (goal[key] - current[key]) * k;
+
+        ctx.clearRect(0, 0, W, H);
+        const scale = Math.min(W, H) / 340;
+        const cx = W * 0.5;
+        const cy = H * 0.52;
+
+        drawBody(ctx, t, cx, cy, scale);
+        drawHeartOverlay(ctx, t, cx, cy, scale, alphas.heart);
+        drawLungsOverlay(ctx, t, cx, cy, scale, alphas.lungs);
+        drawAbdomenOverlay(ctx, t, cx, cy, scale, alphas.abdomen);
+        drawLaunchOverlay(ctx, t, cx, cy, scale, alphas.launch);
+        drawFluidOverlay(ctx, t, cx, cy, scale, alphas.fluid);
+        drawBoneOverlay(ctx, t, cx, cy, scale, alphas.bone);
+        drawReturnOverlay(ctx, t, cx, cy, scale, alphas.return);
+
+        const ak = 0.06;
+        for (const key in alphas) alphas[key] += (targets[key] - alphas[key]) * ak;
+      }
+
+      window.addEventListener('resize', resize);
+      resize();
+      return { draw, setBeat, resize };
+    }
+
+    function initScrollytelling(sceneCanvasId, narrativeId, sceneSetter) {
+      const canvas = document.getElementById(sceneCanvasId);
+      const narrative = document.getElementById(narrativeId);
+      if (!canvas || !narrative) return null;
+
+      const scene = createBodyScene(canvas);
+      const articles = narrative.querySelectorAll('article');
+
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting && entry.intersectionRatio > 0.4) {
+            articles.forEach(a => a.classList.remove('is-active'));
+            entry.target.classList.add('is-active');
+            const beat = entry.target.dataset.beat;
+            if (beat && sceneSetter) sceneSetter(scene, beat);
+          }
+        });
+      }, {
+        rootMargin: '-30% 0px -30% 0px',
+        threshold: [0.4, 0.6]
+      });
+
+      articles.forEach(a => observer.observe(a));
+      return scene;
+    }
+
+    const scene1 = initScrollytelling('canvas-act-1', 'narrative-1', (scene, beat) => scene.setBeat(beat));
+    const scene3 = initScrollytelling('canvas-act-3', 'narrative-3', (scene, beat) => scene.setBeat(beat));
+
+    function mainLoop(now) {
+      const t = now / 1000;
+      if (scene1) {
+        const rect = document.getElementById('canvas-act-1').getBoundingClientRect();
+        if (rect.bottom > 0 && rect.top < window.innerHeight) scene1.draw(t);
+      }
+      if (scene3) {
+        const rect = document.getElementById('canvas-act-3').getBoundingClientRect();
+        if (rect.bottom > 0 && rect.top < window.innerHeight) scene3.draw(t);
+      }
+      requestAnimationFrame(mainLoop);
+    }
+
+    window.addEventListener('load', () => {
+      if (scene1) scene1.setBeat('heart');
+      if (scene3) scene3.setBeat('launch');
+      requestAnimationFrame(mainLoop);
+    });
+
+    window.addEventListener('resize', () => {
+      scene1?.resize();
+      scene3?.resize();
+    });
+
+    /* Make resize handlers globally available for the module's setView */
+    window.__storyScenes = { scene1, scene3 };
+  </script>
+
+</body>
+
+</html>

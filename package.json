@@ -1,0 +1,18 @@
+{
+  "name": "health-e-nasa-space-apps",
+  "version": "1.0.0",
+  "description": "HEALTH-E — Interactive astronaut physiology explorer, ECLSS crew monitor, and local CSV anomaly detector. Built by Team MYTHs for NASA Space Apps Cairo 2026.",
+  "private": true,
+  "scripts": {
+    "dev": "npx serve ."
+  },
+  "keywords": [
+    "nasa-space-apps",
+    "space-medicine",
+    "eclss",
+    "threejs",
+    "astronaut-health"
+  ],
+  "author": "Team MYTHs",
+  "license": "MIT"
+}
