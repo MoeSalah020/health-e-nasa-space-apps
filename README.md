@@ -52,7 +52,7 @@ Because HEALTH-E uses **Vanilla HTML, CSS, and ES Modules** (with Three.js loade
 ### Option 1: Using Node.js (`npx serve`)
 
 ```bash
-git clone https://github.com/<your-username>/health-e-nasa-space-apps.git
+git clone https://github.com/<MoeSalah020>/health-e-nasa-space-apps.git
 cd health-e-nasa-space-apps
 npm run dev
 ```
