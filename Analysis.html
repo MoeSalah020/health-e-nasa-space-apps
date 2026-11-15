@@ -1,1677 +1,1903 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<meta name="description" content="HEALTH-E · ECLSS Crew Health Telemetry — local CSV anomaly detection proof of concept. Team MYTHs, NASA Space Apps Cairo 2026." />
-<title>HEALTH-E · ECLSS Monitoring — Team MYTHs</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="description"
+    content="HEALTH-E · ECLSS Crew Health Telemetry — local CSV anomaly detection proof of concept. Team MYTHs, NASA Space Apps Cairo 2026." />
+  <title>HEALTH-E · ECLSS Monitoring — Team MYTHs</title>
 
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,800&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,800&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap"
+    rel="stylesheet">
 
-<style>
-/* ============================================================
+  <style>
+    /* ============================================================
    BIO-ORBIT — Team MYTHs · NASA Space Apps Cairo 2026
    ECLSS MONITORING · Anomaly detection page
 ============================================================ */
-:root {
-  --bg:            #1a1310;
-  --bg-deep:       #0f0a08;
-  --card:          rgba(42, 32, 28, 0.65);
-  --card-strong:   rgba(42, 32, 28, 0.85);
-  --border:        rgba(211, 187, 160, 0.24);
-  --border-soft:   rgba(211, 187, 160, 0.16);
-  --cyan:          #C14424;
-  --mint:          #D3BBA0;
-  --gold:          #C14424;
-  --rose:          #C14424;
-  --text:          #F0E7D4;
-  --text-soft:     #D3BBA0;
-  --muted:         rgba(240, 231, 212, 0.55);
-  --radius-sm:     10px;
-  --radius:        16px;
-  --radius-lg:     24px;
-  --shadow:        0 18px 48px rgba(14, 10, 8, 0.58);
-  --shadow-soft:   0 8px 24px rgba(14, 10, 8, 0.38);
-  --glow-cyan:     0 0 0 1px rgba(193, 68, 36, 0.55), 0 0 28px rgba(193, 68, 36, 0.22);
-  --ease:          cubic-bezier(0.22, 0.61, 0.36, 1);
-  --footer-h:      54px;
-}
+    :root {
+      --bg: #1a1310;
+      --bg-deep: #0f0a08;
+      --card: rgba(42, 32, 28, 0.65);
+      --card-strong: rgba(42, 32, 28, 0.85);
+      --border: rgba(211, 187, 160, 0.24);
+      --border-soft: rgba(211, 187, 160, 0.16);
+      --cyan: #C14424;
+      --mint: #D3BBA0;
+      --gold: #C14424;
+      --rose: #C14424;
+      --text: #F0E7D4;
+      --text-soft: #D3BBA0;
+      --muted: rgba(240, 231, 212, 0.55);
+      --radius-sm: 10px;
+      --radius: 16px;
+      --radius-lg: 24px;
+      --shadow: 0 18px 48px rgba(14, 10, 8, 0.58);
+      --shadow-soft: 0 8px 24px rgba(14, 10, 8, 0.38);
+      --glow-cyan: 0 0 0 1px rgba(193, 68, 36, 0.55), 0 0 28px rgba(193, 68, 36, 0.22);
+      --ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+      --footer-h: 54px;
+    }
 
-*, *::before, *::after { box-sizing: border-box; }
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+    }
 
-html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+    html {
+      scroll-behavior: smooth;
+      -webkit-text-size-adjust: 100%;
+    }
 
-body {
-  margin: 0;
-  min-height: 100%;
-  color: var(--text);
-  font-family: "Inter", "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
-  font-size: 16px;
-  line-height: 1.65;
-  background: var(--bg);
-  -webkit-font-smoothing: antialiased;
-  overflow-x: hidden;
-  padding-bottom: var(--footer-h);
-}
+    body {
+      margin: 0;
+      min-height: 100%;
+      color: var(--text);
+      font-family: "Inter", "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+      font-size: 16px;
+      line-height: 1.65;
+      background: var(--bg);
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+      padding-bottom: var(--footer-h);
+    }
 
-body::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  z-index: -2;
-  background:
-    radial-gradient(1100px 700px at 78% -10%, rgba(193, 68, 36, 0.16), transparent 62%),
-    radial-gradient(900px 620px at 8% 14%, rgba(123, 63, 58, 0.22), transparent 60%),
-    radial-gradient(800px 800px at 50% 118%, rgba(211, 187, 160, 0.06), transparent 65%),
-    linear-gradient(180deg, var(--bg) 0%, var(--bg-deep) 55%, #080604 100%);
-  pointer-events: none;
-}
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      z-index: -2;
+      background:
+        radial-gradient(1100px 700px at 78% -10%, rgba(193, 68, 36, 0.16), transparent 62%),
+        radial-gradient(900px 620px at 8% 14%, rgba(123, 63, 58, 0.22), transparent 60%),
+        radial-gradient(800px 800px at 50% 118%, rgba(211, 187, 160, 0.06), transparent 65%),
+        linear-gradient(180deg, var(--bg) 0%, var(--bg-deep) 55%, #080604 100%);
+      pointer-events: none;
+    }
 
-img, canvas { display: block; max-width: 100%; }
+    img,
+    canvas {
+      display: block;
+      max-width: 100%;
+    }
 
-h1, h2, h3, h4 {
-  margin: 0 0 0.5em;
-  line-height: 1.2;
-  font-weight: 700;
-  letter-spacing: -0.015em;
-  color: var(--text);
-}
-p { margin: 0 0 1em; }
-p:last-child { margin-bottom: 0; }
-a { color: var(--cyan); text-decoration: none; }
-a:hover { text-decoration: underline; }
-button { font: inherit; color: inherit; }
-code {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  font-size: 0.85em;
-  padding: 1px 6px;
-  border-radius: 6px;
-  color: var(--cyan);
-  background: rgba(193, 68, 36, 0.10);
-  border: 1px solid rgba(193, 68, 36, 0.18);
-}
-::selection { background: rgba(193, 68, 36, 0.4); color: #F0E7D4; }
+    h1,
+    h2,
+    h3,
+    h4 {
+      margin: 0 0 0.5em;
+      line-height: 1.2;
+      font-weight: 700;
+      letter-spacing: -0.015em;
+      color: var(--text);
+    }
 
-* { scrollbar-width: thin; scrollbar-color: rgba(193, 68, 36, 0.35) transparent; }
-::-webkit-scrollbar { width: 10px; height: 10px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb {
-  background: rgba(193, 68, 36, 0.32);
-  border-radius: 999px;
-  border: 2px solid transparent;
-  background-clip: content-box;
-}
-::-webkit-scrollbar-thumb:hover { background: rgba(193, 68, 36, 0.55); background-clip: content-box; }
+    p {
+      margin: 0 0 1em;
+    }
 
-/* MODE SWITCH */
-body.mode-kid  .adult-copy { display: none !important; }
-body.mode-adult .kid-copy  { display: none !important; }
+    p:last-child {
+      margin-bottom: 0;
+    }
 
-/* STARFIELD */
-.space-canvas {
-  position: fixed;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  z-index: -1;
-  pointer-events: none;
-}
+    a {
+      color: var(--cyan);
+      text-decoration: none;
+    }
 
-/* ============================================================
+    a:hover {
+      text-decoration: underline;
+    }
+
+    button {
+      font: inherit;
+      color: inherit;
+    }
+
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 0.85em;
+      padding: 1px 6px;
+      border-radius: 6px;
+      color: var(--cyan);
+      background: rgba(193, 68, 36, 0.10);
+      border: 1px solid rgba(193, 68, 36, 0.18);
+    }
+
+    ::selection {
+      background: rgba(193, 68, 36, 0.4);
+      color: #F0E7D4;
+    }
+
+    * {
+      scrollbar-width: thin;
+      scrollbar-color: rgba(193, 68, 36, 0.35) transparent;
+    }
+
+    ::-webkit-scrollbar {
+      width: 10px;
+      height: 10px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: rgba(193, 68, 36, 0.32);
+      border-radius: 999px;
+      border: 2px solid transparent;
+      background-clip: content-box;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(193, 68, 36, 0.55);
+      background-clip: content-box;
+    }
+
+    /* MODE SWITCH */
+    body.mode-kid .adult-copy {
+      display: none !important;
+    }
+
+    body.mode-adult .kid-copy {
+      display: none !important;
+    }
+
+    /* STARFIELD */
+    .space-canvas {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -1;
+      pointer-events: none;
+    }
+
+    /* ============================================================
    GLOBAL UNIFIED TOP BAR
 ============================================================ */
-.topbar {
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  flex-wrap: wrap;
-  padding: 14px clamp(16px, 4vw, 44px);
-  background: rgba(26, 19, 16, 0.78);
-  backdrop-filter: blur(16px) saturate(140%);
-  -webkit-backdrop-filter: blur(16px) saturate(140%);
-  border-bottom: 1px solid var(--border-soft);
-}
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+      padding: 14px clamp(16px, 4vw, 44px);
+      background: rgba(26, 19, 16, 0.78);
+      backdrop-filter: blur(16px) saturate(140%);
+      -webkit-backdrop-filter: blur(16px) saturate(140%);
+      border-bottom: 1px solid var(--border-soft);
+    }
 
-.brand {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  text-decoration: none;
-  color: #F0E7D4;
-}
-.brand:hover { text-decoration: none; }
-.brand-orb {
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  background:
-    radial-gradient(circle at 32% 30%, #F0E7D4 0%, var(--cyan) 32%, #7B3F3A 78%, var(--bg-deep) 100%);
-  box-shadow: 0 0 16px rgba(193, 68, 36, 0.75), inset 0 0 6px rgba(240, 231, 212, 0.55);
-  flex: 0 0 auto;
-}
-.brand-text {
-  font-weight: 800;
-  font-size: 1.05rem;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-}
-.brand-text .dot { color: var(--gold); }
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+      color: #F0E7D4;
+    }
 
-.main-nav {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-  justify-content: center;
-  flex: 1 1 auto;
-}
+    .brand:hover {
+      text-decoration: none;
+    }
 
-.ghost-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 9px 16px;
-  border-radius: 999px;
-  border: 1px solid var(--border);
-  background: rgba(193, 68, 36, 0.06);
-  color: var(--text-soft);
-  font-size: 0.88rem;
-  font-weight: 600;
-  text-decoration: none;
-  cursor: pointer;
-  transition: background 0.22s var(--ease), color 0.22s var(--ease),
-              border-color 0.22s var(--ease), transform 0.22s var(--ease);
-}
-.ghost-btn:hover {
-  background: rgba(193, 68, 36, 0.14);
-  border-color: rgba(193, 68, 36, 0.45);
-  color: var(--text);
-  text-decoration: none;
-  transform: translateY(-1px);
-}
-.ghost-btn:active { transform: translateY(0); }
+    .brand-orb {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background:
+        radial-gradient(circle at 32% 30%, #F0E7D4 0%, var(--cyan) 32%, #7B3F3A 78%, var(--bg-deep) 100%);
+      box-shadow: 0 0 16px rgba(193, 68, 36, 0.75), inset 0 0 6px rgba(240, 231, 212, 0.55);
+      flex: 0 0 auto;
+    }
 
-.mode-toggle {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 4px;
-  border-radius: 999px;
-  border: 1px solid var(--border);
-  background: rgba(26, 19, 16, 0.7);
-  cursor: pointer;
-  transition: border-color 0.25s var(--ease), box-shadow 0.25s var(--ease);
-}
-.mode-toggle:hover {
-  border-color: rgba(193, 68, 36, 0.5);
-  box-shadow: var(--glow-cyan);
-}
-.mode-pill {
-  padding: 7px 15px;
-  border-radius: 999px;
-  font-size: 0.8rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  color: var(--muted);
-  white-space: nowrap;
-  transition: color 0.25s var(--ease), background 0.25s var(--ease),
-              box-shadow 0.25s var(--ease);
-}
-.mode-pill.is-active {
-  color: #0f0a08;
-  background: linear-gradient(135deg, var(--cyan), var(--mint));
-  box-shadow: 0 4px 16px rgba(193, 68, 36, 0.35);
-}
+    .brand-text {
+      font-weight: 800;
+      font-size: 1.05rem;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+    }
 
-/* BUTTONS */
-.primary-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 14px 28px;
-  border: none;
-  border-radius: 999px;
-  font-size: 0.98rem;
-  font-weight: 700;
-  letter-spacing: 0.01em;
-  color: #0f0a08;
-  cursor: pointer;
-  background: linear-gradient(135deg, var(--cyan) 0%, var(--mint) 100%);
-  box-shadow: 0 10px 30px rgba(193, 68, 36, 0.28);
-  transition: transform 0.22s var(--ease), box-shadow 0.22s var(--ease), filter 0.22s var(--ease);
-}
-.primary-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 16px 40px rgba(193, 68, 36, 0.38);
-  filter: brightness(1.05);
-}
-.primary-btn:active { transform: translateY(0); }
-.primary-btn:focus-visible { outline: 2px solid var(--cyan); outline-offset: 3px; }
+    .brand-text .dot {
+      color: var(--gold);
+    }
 
-.secondary-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 14px 26px;
-  border-radius: 999px;
-  border: 1px solid var(--border);
-  background: rgba(42, 32, 28, 0.5);
-  color: var(--text-soft);
-  font-size: 0.95rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.22s var(--ease), border-color 0.22s var(--ease),
-              color 0.22s var(--ease), transform 0.22s var(--ease);
-}
-.secondary-btn:hover {
-  background: rgba(193, 68, 36, 0.12);
-  border-color: rgba(193, 68, 36, 0.45);
-  color: var(--text);
-  text-decoration: none;
-  transform: translateY(-2px);
-}
+    .main-nav {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: center;
+      flex: 1 1 auto;
+    }
 
-/* GLASS CARD */
-.glass-card {
-  position: relative;
-  padding: clamp(20px, 3vw, 30px);
-  border-radius: var(--radius-lg);
-  background: var(--card);
-  border: 1px solid var(--border);
-  backdrop-filter: blur(18px) saturate(150%);
-  -webkit-backdrop-filter: blur(18px) saturate(150%);
-  box-shadow: var(--shadow);
-  transition: transform 0.3s var(--ease), border-color 0.3s var(--ease),
-              box-shadow 0.3s var(--ease);
-}
-.glass-card::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  background: linear-gradient(150deg, rgba(255, 255, 255, 0.06), transparent 45%);
-  pointer-events: none;
-}
-.glass-card p { color: var(--text-soft); font-size: 0.94rem; }
+    .ghost-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 9px 16px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: rgba(193, 68, 36, 0.06);
+      color: var(--text-soft);
+      font-size: 0.88rem;
+      font-weight: 600;
+      text-decoration: none;
+      cursor: pointer;
+      transition: background 0.22s var(--ease), color 0.22s var(--ease),
+        border-color 0.22s var(--ease), transform 0.22s var(--ease);
+    }
 
-.eyebrow {
-  display: inline-block;
-  margin: 0 0 16px;
-  padding: 6px 14px;
-  border-radius: 999px;
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--cyan);
-  background: rgba(193, 68, 36, 0.1);
-  border: 1px solid rgba(193, 68, 36, 0.28);
-}
+    .ghost-btn:hover {
+      background: rgba(193, 68, 36, 0.14);
+      border-color: rgba(193, 68, 36, 0.45);
+      color: var(--text);
+      text-decoration: none;
+      transform: translateY(-1px);
+    }
 
-/* ============================================================
+    .ghost-btn:active {
+      transform: translateY(0);
+    }
+
+    .mode-toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: rgba(26, 19, 16, 0.7);
+      cursor: pointer;
+      transition: border-color 0.25s var(--ease), box-shadow 0.25s var(--ease);
+    }
+
+    .mode-toggle:hover {
+      border-color: rgba(193, 68, 36, 0.5);
+      box-shadow: var(--glow-cyan);
+    }
+
+    .mode-pill {
+      padding: 7px 15px;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      color: var(--muted);
+      white-space: nowrap;
+      transition: color 0.25s var(--ease), background 0.25s var(--ease),
+        box-shadow 0.25s var(--ease);
+    }
+
+    .mode-pill.is-active {
+      color: #0f0a08;
+      background: linear-gradient(135deg, var(--cyan), var(--mint));
+      box-shadow: 0 4px 16px rgba(193, 68, 36, 0.35);
+    }
+
+    /* BUTTONS */
+    .primary-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 14px 28px;
+      border: none;
+      border-radius: 999px;
+      font-size: 0.98rem;
+      font-weight: 700;
+      letter-spacing: 0.01em;
+      color: #0f0a08;
+      cursor: pointer;
+      background: linear-gradient(135deg, var(--cyan) 0%, var(--mint) 100%);
+      box-shadow: 0 10px 30px rgba(193, 68, 36, 0.28);
+      transition: transform 0.22s var(--ease), box-shadow 0.22s var(--ease), filter 0.22s var(--ease);
+    }
+
+    .primary-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 16px 40px rgba(193, 68, 36, 0.38);
+      filter: brightness(1.05);
+    }
+
+    .primary-btn:active {
+      transform: translateY(0);
+    }
+
+    .primary-btn:focus-visible {
+      outline: 2px solid var(--cyan);
+      outline-offset: 3px;
+    }
+
+    .secondary-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 14px 26px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: rgba(42, 32, 28, 0.5);
+      color: var(--text-soft);
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.22s var(--ease), border-color 0.22s var(--ease),
+        color 0.22s var(--ease), transform 0.22s var(--ease);
+    }
+
+    .secondary-btn:hover {
+      background: rgba(193, 68, 36, 0.12);
+      border-color: rgba(193, 68, 36, 0.45);
+      color: var(--text);
+      text-decoration: none;
+      transform: translateY(-2px);
+    }
+
+    /* GLASS CARD */
+    .glass-card {
+      position: relative;
+      padding: clamp(20px, 3vw, 30px);
+      border-radius: var(--radius-lg);
+      background: var(--card);
+      border: 1px solid var(--border);
+      backdrop-filter: blur(18px) saturate(150%);
+      -webkit-backdrop-filter: blur(18px) saturate(150%);
+      box-shadow: var(--shadow);
+      transition: transform 0.3s var(--ease), border-color 0.3s var(--ease),
+        box-shadow 0.3s var(--ease);
+    }
+
+    .glass-card::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      background: linear-gradient(150deg, rgba(255, 255, 255, 0.06), transparent 45%);
+      pointer-events: none;
+    }
+
+    .glass-card p {
+      color: var(--text-soft);
+      font-size: 0.94rem;
+    }
+
+    .eyebrow {
+      display: inline-block;
+      margin: 0 0 16px;
+      padding: 6px 14px;
+      border-radius: 999px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--cyan);
+      background: rgba(193, 68, 36, 0.1);
+      border: 1px solid rgba(193, 68, 36, 0.28);
+    }
+
+    /* ============================================================
    MONITORING LAYOUT
 ============================================================ */
-.mon-layout {
-  max-width: 1400px;
-  margin: 0 auto;
-  padding: clamp(24px, 4vw, 44px) clamp(16px, 4vw, 44px) 60px;
-  display: flex;
-  flex-direction: column;
-  gap: clamp(18px, 2.6vw, 28px);
-}
+    .mon-layout {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: clamp(24px, 4vw, 44px) clamp(16px, 4vw, 44px) 60px;
+      display: flex;
+      flex-direction: column;
+      gap: clamp(18px, 2.6vw, 28px);
+    }
 
-.mon-header-card { transition: border-color 0.25s var(--ease), box-shadow 0.25s var(--ease); }
-.mon-header-card h2 { font-size: clamp(1.4rem, 2.8vw, 2rem); margin-bottom: 12px; color: var(--text); }
-.mon-header-card p { color: var(--text-soft); font-size: 0.94rem; max-width: 78ch; }
-.mon-header-card.is-dragover {
-  border-color: rgba(193, 68, 36, 0.6);
-  box-shadow: var(--shadow), var(--glow-cyan);
-}
+    .mon-header-card {
+      transition: border-color 0.25s var(--ease), box-shadow 0.25s var(--ease);
+    }
 
-.mon-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  margin-top: 20px;
-  align-items: center;
-}
+    .mon-header-card h2 {
+      font-size: clamp(1.4rem, 2.8vw, 2rem);
+      margin-bottom: 12px;
+      color: var(--text);
+    }
 
-.csv-hint {
-  margin-top: 16px !important;
-  font-size: 0.8rem !important;
-  color: var(--muted) !important;
-  line-height: 1.6;
-}
+    .mon-header-card p {
+      color: var(--text-soft);
+      font-size: 0.94rem;
+      max-width: 78ch;
+    }
 
-/* SCAN STATUS */
-.scan-status {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  margin-top: 18px;
-  padding: 9px 16px;
-  border-radius: 999px;
-  font-size: 0.84rem;
-  font-weight: 600;
-  color: var(--text-soft);
-  background: rgba(42, 32, 28, 0.6);
-  border: 1px solid var(--border-soft);
-  transition: all 0.25s var(--ease);
-}
-.scan-status::before {
-  content: '';
-  width: 9px; height: 9px;
-  border-radius: 50%;
-  background: var(--muted);
-  flex: 0 0 auto;
-  transition: background 0.25s var(--ease);
-}
-.scan-status.is-scanning {
-  color: var(--mint);
-  border-color: rgba(211, 187, 160, 0.4);
-  background: rgba(211, 187, 160, 0.08);
-}
-.scan-status.is-scanning::before {
-  background: var(--mint);
-  box-shadow: 0 0 12px var(--mint);
-  animation: pulseDot 0.9s infinite ease-in-out;
-}
-.scan-status.is-done {
-  color: var(--cyan);
-  border-color: rgba(193, 68, 36, 0.35);
-  background: rgba(193, 68, 36, 0.08);
-}
-.scan-status.is-done::before {
-  background: var(--cyan);
-  box-shadow: 0 0 12px var(--cyan);
-}
-.scan-status.is-error {
-  color: var(--rose);
-  border-color: rgba(193, 68, 36, 0.4);
-  background: rgba(193, 68, 36, 0.08);
-}
-.scan-status.is-error::before {
-  background: var(--rose);
-  box-shadow: 0 0 12px var(--rose);
-}
-@keyframes pulseDot {
-  0%, 100% { transform: scale(0.75); opacity: 0.7; }
-  50%      { transform: scale(1.35); opacity: 1; }
-}
+    .mon-header-card.is-dragover {
+      border-color: rgba(193, 68, 36, 0.6);
+      box-shadow: var(--shadow), var(--glow-cyan);
+    }
 
-/* STAT CARDS */
-.mon-stats {
-  display: grid;
-  gap: clamp(12px, 2vw, 18px);
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr));
-}
-.stat-card {
-  padding: 16px 20px;
-  border-radius: var(--radius);
-  background: var(--card);
-  border: 1px solid var(--border);
-  backdrop-filter: blur(14px) saturate(140%);
-  -webkit-backdrop-filter: blur(14px) saturate(140%);
-  box-shadow: var(--shadow-soft);
-}
-.stat-label {
-  display: block;
-  font-size: 0.7rem;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--muted);
-}
-.stat-value {
-  display: block;
-  margin-top: 6px;
-  font-size: 1.6rem;
-  font-weight: 800;
-  color: var(--cyan);
-  font-variant-numeric: tabular-nums;
-  line-height: 1.1;
-}
-.stat-card.alert .stat-value { color: var(--mint); }
-.stat-card.good  .stat-value { color: var(--mint); }
+    .mon-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 20px;
+      align-items: center;
+    }
 
-/* CHARTS */
-.mon-charts {
-  display: grid;
-  gap: clamp(14px, 2vw, 20px);
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr));
-}
-.chart-card {
-  padding: 16px 20px 12px;
-  border-radius: var(--radius);
-  background: var(--card);
-  border: 1px solid var(--border);
-  backdrop-filter: blur(14px) saturate(140%);
-  -webkit-backdrop-filter: blur(14px) saturate(140%);
-  box-shadow: var(--shadow-soft);
-}
-.chart-card[hidden] { display: none; }
-.chart-head {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 10px;
-  margin-bottom: 10px;
-}
-.chart-head h4 {
-  margin: 0;
-  font-size: 0.86rem;
-  font-weight: 700;
-  letter-spacing: 0.03em;
-  color: var(--text-soft);
-}
-.chart-unit {
-  font-size: 0.7rem;
-  color: var(--muted);
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-}
-.chart-canvas {
-  width: 100%;
-  height: clamp(140px, 18vw, 172px);
-  display: block;
-}
+    .csv-hint {
+      margin-top: 16px !important;
+      font-size: 0.8rem !important;
+      color: var(--muted) !important;
+      line-height: 1.6;
+    }
 
-/* ANOMALY LOG */
-.anomaly-card {
-  padding: 20px 24px;
-  border-radius: var(--radius);
-  background: var(--card);
-  border: 1px solid var(--border);
-  backdrop-filter: blur(14px) saturate(140%);
-  -webkit-backdrop-filter: blur(14px) saturate(140%);
-  box-shadow: var(--shadow-soft);
-}
-.anomaly-card h3 {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-size: 1rem;
-  margin-bottom: 4px;
-  flex-wrap: wrap;
-}
-.anomaly-card h3::before {
-  content: '⚠';
-  color: var(--cyan);
-  font-size: 1.1rem;
-}
-.anom-count {
-  margin-left: 6px;
-  padding: 2px 10px;
-  border-radius: 999px;
-  font-size: 0.72rem;
-  font-weight: 800;
-  background: rgba(193, 68, 36, 0.15);
-  color: var(--cyan);
-  border: 1px solid rgba(193, 68, 36, 0.3);
-  font-variant-numeric: tabular-nums;
-}
-.anomaly-list {
-  list-style: none;
-  padding: 0;
-  margin: 14px 0 0;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  max-height: 360px;
-  overflow-y: auto;
-  padding-right: 4px;
-}
-.anomaly-empty {
-  padding: 10px 0;
-  font-size: 0.86rem;
-  font-style: italic;
-  color: var(--muted);
-}
-.anomaly-item {
-  display: grid;
-  grid-template-columns: 80px 1fr auto auto;
-  gap: 12px;
-  align-items: center;
-  padding: 10px 14px;
-  border-radius: var(--radius-sm);
-  background: rgba(26, 19, 16, 0.55);
-  border: 1px solid rgba(193, 68, 36, 0.18);
-  border-left: 3px solid var(--cyan);
-  font-size: 0.86rem;
-  animation: anomalyIn 0.35s var(--ease) both;
-}
-.anomaly-item .anom-time {
-  font-size: 0.76rem;
-  color: var(--muted);
-  font-variant-numeric: tabular-nums;
-}
-.anom-metric {
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-  color: var(--text-soft);
-  font-weight: 600;
-}
-.anom-reason {
-  font-size: 0.72rem;
-  font-weight: 500;
-  color: var(--muted);
-}
-.anomaly-item .anom-value {
-  color: var(--cyan);
-  font-weight: 800;
-  font-variant-numeric: tabular-nums;
-  white-space: nowrap;
-}
-.anom-sev {
-  font-size: 0.68rem;
-  font-weight: 800;
-  letter-spacing: 0.1em;
-  padding: 3px 9px;
-  border-radius: 999px;
-  text-transform: uppercase;
-  white-space: nowrap;
-}
-.anom-sev.high { color: var(--cyan); background: rgba(193, 68, 36, 0.12); border: 1px solid rgba(193, 68, 36, 0.35); }
-.anom-sev.med  { color: var(--mint); background: rgba(211, 187, 160, 0.10); border: 1px solid rgba(211, 187, 160, 0.30); }
-.anom-sev.low  { color: var(--text-soft); background: rgba(240, 231, 212, 0.10); border: 1px solid rgba(240, 231, 212, 0.30); }
+    /* SCAN STATUS */
+    .scan-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 18px;
+      padding: 9px 16px;
+      border-radius: 999px;
+      font-size: 0.84rem;
+      font-weight: 600;
+      color: var(--text-soft);
+      background: rgba(42, 32, 28, 0.6);
+      border: 1px solid var(--border-soft);
+      transition: all 0.25s var(--ease);
+    }
 
-@keyframes anomalyIn {
-  from { opacity: 0; transform: translateX(-10px); }
-  to   { opacity: 1; transform: translateX(0); }
-}
+    .scan-status::before {
+      content: '';
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: var(--muted);
+      flex: 0 0 auto;
+      transition: background 0.25s var(--ease);
+    }
 
-/* COPYRIGHT BAR */
-.copyright-bar {
-  position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 70;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  flex-wrap: wrap;
-  min-height: var(--footer-h);
-  padding: 10px 16px;
-  font-size: 0.78rem;
-  letter-spacing: 0.02em;
-  color: var(--muted);
-  text-align: center;
-  background: rgba(15, 10, 8, 0.92);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  border-top: 1px solid var(--border-soft);
-}
-.copyright-bar strong { color: var(--cyan); font-weight: 700; }
+    .scan-status.is-scanning {
+      color: var(--mint);
+      border-color: rgba(211, 187, 160, 0.4);
+      background: rgba(211, 187, 160, 0.08);
+    }
 
-/* RESPONSIVE */
-@media (max-width: 720px) {
-  body { font-size: 15px; }
-  .topbar { padding: 10px 14px; gap: 10px; }
-  .brand-text { font-size: 0.95rem; letter-spacing: 0.12em; }
-  .mon-actions .primary-btn,
-  .mon-actions .secondary-btn { width: 100%; }
-  .copyright-bar { font-size: 0.7rem; padding: 8px 12px; }
-}
-@media (max-width: 620px) {
-  .anomaly-item { grid-template-columns: 64px 1fr auto; }
-  .anom-sev { grid-column: 1 / -1; justify-self: start; }
-}
-@media (max-width: 420px) {
-  .mode-pill { padding: 6px 11px; font-size: 0.74rem; }
-  .ghost-btn { padding: 8px 13px; font-size: 0.8rem; }
-}
+    .scan-status.is-scanning::before {
+      background: var(--mint);
+      box-shadow: 0 0 12px var(--mint);
+      animation: pulseDot 0.9s infinite ease-in-out;
+    }
 
-@media (prefers-reduced-motion: reduce) {
-  html { scroll-behavior: auto; }
-  *, *::before, *::after {
-    animation-duration: 0.001ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.001ms !important;
-  }
-  .ghost-btn:hover,
-  .primary-btn:hover,
-  .secondary-btn:hover { transform: none; }
-}
-:focus-visible {
-  outline: 2px solid var(--cyan);
-  outline-offset: 3px;
-  border-radius: 6px;
-}
-</style>
+    .scan-status.is-done {
+      color: var(--cyan);
+      border-color: rgba(193, 68, 36, 0.35);
+      background: rgba(193, 68, 36, 0.08);
+    }
+
+    .scan-status.is-done::before {
+      background: var(--cyan);
+      box-shadow: 0 0 12px var(--cyan);
+    }
+
+    .scan-status.is-error {
+      color: var(--rose);
+      border-color: rgba(193, 68, 36, 0.4);
+      background: rgba(193, 68, 36, 0.08);
+    }
+
+    .scan-status.is-error::before {
+      background: var(--rose);
+      box-shadow: 0 0 12px var(--rose);
+    }
+
+    @keyframes pulseDot {
+
+      0%,
+      100% {
+        transform: scale(0.75);
+        opacity: 0.7;
+      }
+
+      50% {
+        transform: scale(1.35);
+        opacity: 1;
+      }
+    }
+
+    /* STAT CARDS */
+    .mon-stats {
+      display: grid;
+      gap: clamp(12px, 2vw, 18px);
+      grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr));
+    }
+
+    .stat-card {
+      padding: 16px 20px;
+      border-radius: var(--radius);
+      background: var(--card);
+      border: 1px solid var(--border);
+      backdrop-filter: blur(14px) saturate(140%);
+      -webkit-backdrop-filter: blur(14px) saturate(140%);
+      box-shadow: var(--shadow-soft);
+    }
+
+    .stat-label {
+      display: block;
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .stat-value {
+      display: block;
+      margin-top: 6px;
+      font-size: 1.6rem;
+      font-weight: 800;
+      color: var(--cyan);
+      font-variant-numeric: tabular-nums;
+      line-height: 1.1;
+    }
+
+    .stat-card.alert .stat-value {
+      color: var(--mint);
+    }
+
+    .stat-card.good .stat-value {
+      color: var(--mint);
+    }
+
+    /* CHARTS */
+    .mon-charts {
+      display: grid;
+      gap: clamp(14px, 2vw, 20px);
+      grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr));
+    }
+
+    .chart-card {
+      padding: 16px 20px 12px;
+      border-radius: var(--radius);
+      background: var(--card);
+      border: 1px solid var(--border);
+      backdrop-filter: blur(14px) saturate(140%);
+      -webkit-backdrop-filter: blur(14px) saturate(140%);
+      box-shadow: var(--shadow-soft);
+    }
+
+    .chart-card[hidden] {
+      display: none;
+    }
+
+    .chart-head {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .chart-head h4 {
+      margin: 0;
+      font-size: 0.86rem;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+      color: var(--text-soft);
+    }
+
+    .chart-unit {
+      font-size: 0.7rem;
+      color: var(--muted);
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .chart-canvas {
+      width: 100%;
+      height: clamp(140px, 18vw, 172px);
+      display: block;
+    }
+
+    /* ANOMALY LOG */
+    .anomaly-card {
+      padding: 20px 24px;
+      border-radius: var(--radius);
+      background: var(--card);
+      border: 1px solid var(--border);
+      backdrop-filter: blur(14px) saturate(140%);
+      -webkit-backdrop-filter: blur(14px) saturate(140%);
+      box-shadow: var(--shadow-soft);
+    }
+
+    .anomaly-card h3 {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 1rem;
+      margin-bottom: 4px;
+      flex-wrap: wrap;
+    }
+
+    .anomaly-card h3::before {
+      content: '⚠';
+      color: var(--cyan);
+      font-size: 1.1rem;
+    }
+
+    .anom-count {
+      margin-left: 6px;
+      padding: 2px 10px;
+      border-radius: 999px;
+      font-size: 0.72rem;
+      font-weight: 800;
+      background: rgba(193, 68, 36, 0.15);
+      color: var(--cyan);
+      border: 1px solid rgba(193, 68, 36, 0.3);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .anomaly-list {
+      list-style: none;
+      padding: 0;
+      margin: 14px 0 0;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      max-height: 360px;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+
+    .anomaly-empty {
+      padding: 10px 0;
+      font-size: 0.86rem;
+      font-style: italic;
+      color: var(--muted);
+    }
+
+    .anomaly-item {
+      display: grid;
+      grid-template-columns: 80px 1fr auto auto;
+      gap: 12px;
+      align-items: center;
+      padding: 10px 14px;
+      border-radius: var(--radius-sm);
+      background: rgba(26, 19, 16, 0.55);
+      border: 1px solid rgba(193, 68, 36, 0.18);
+      border-left: 3px solid var(--cyan);
+      font-size: 0.86rem;
+      animation: anomalyIn 0.35s var(--ease) both;
+    }
+
+    .anomaly-item .anom-time {
+      font-size: 0.76rem;
+      color: var(--muted);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .anom-metric {
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+      color: var(--text-soft);
+      font-weight: 600;
+    }
+
+    .anom-reason {
+      font-size: 0.72rem;
+      font-weight: 500;
+      color: var(--muted);
+    }
+
+    .anomaly-item .anom-value {
+      color: var(--cyan);
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+
+    .anom-sev {
+      font-size: 0.68rem;
+      font-weight: 800;
+      letter-spacing: 0.1em;
+      padding: 3px 9px;
+      border-radius: 999px;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .anom-sev.high {
+      color: var(--cyan);
+      background: rgba(193, 68, 36, 0.12);
+      border: 1px solid rgba(193, 68, 36, 0.35);
+    }
+
+    .anom-sev.med {
+      color: var(--mint);
+      background: rgba(211, 187, 160, 0.10);
+      border: 1px solid rgba(211, 187, 160, 0.30);
+    }
+
+    .anom-sev.low {
+      color: var(--text-soft);
+      background: rgba(240, 231, 212, 0.10);
+      border: 1px solid rgba(240, 231, 212, 0.30);
+    }
+
+    @keyframes anomalyIn {
+      from {
+        opacity: 0;
+        transform: translateX(-10px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    /* COPYRIGHT BAR */
+    .copyright-bar {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 70;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      flex-wrap: wrap;
+      min-height: var(--footer-h);
+      padding: 10px 16px;
+      font-size: 0.78rem;
+      letter-spacing: 0.02em;
+      color: var(--muted);
+      text-align: center;
+      background: rgba(15, 10, 8, 0.92);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border-top: 1px solid var(--border-soft);
+    }
+
+    .copyright-bar strong {
+      color: var(--cyan);
+      font-weight: 700;
+    }
+
+    /* RESPONSIVE */
+    @media (max-width: 720px) {
+      body {
+        font-size: 15px;
+      }
+
+      .topbar {
+        padding: 10px 14px;
+        gap: 10px;
+      }
+
+      .brand-text {
+        font-size: 0.95rem;
+        letter-spacing: 0.12em;
+      }
+
+      .mon-actions .primary-btn,
+      .mon-actions .secondary-btn {
+        width: 100%;
+      }
+
+      .copyright-bar {
+        font-size: 0.7rem;
+        padding: 8px 12px;
+      }
+    }
+
+    @media (max-width: 620px) {
+      .anomaly-item {
+        grid-template-columns: 64px 1fr auto;
+      }
+
+      .anom-sev {
+        grid-column: 1 / -1;
+        justify-self: start;
+      }
+    }
+
+    @media (max-width: 420px) {
+      .mode-pill {
+        padding: 6px 11px;
+        font-size: 0.74rem;
+      }
+
+      .ghost-btn {
+        padding: 8px 13px;
+        font-size: 0.8rem;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html {
+        scroll-behavior: auto;
+      }
+
+      *,
+      *::before,
+      *::after {
+        animation-duration: 0.001ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.001ms !important;
+      }
+
+      .ghost-btn:hover,
+      .primary-btn:hover,
+      .secondary-btn:hover {
+        transform: none;
+      }
+    }
+
+    :focus-visible {
+      outline: 2px solid var(--cyan);
+      outline-offset: 3px;
+      border-radius: 6px;
+    }
+  </style>
 </head>
 
 <body class="mode-kid">
 
-<canvas id="space-canvas" class="space-canvas" aria-hidden="true"></canvas>
+  <canvas id="space-canvas" class="space-canvas" aria-hidden="true"></canvas>
 
-<!-- ============================================================
+  <!-- ============================================================
      GLOBAL UNIFIED TOP BAR
 ============================================================ -->
-<header class="topbar">
-  <a class="brand" href="index.html" aria-label="HEALTH-E home">
-    <span class="brand-orb"></span>
-    <span class="brand-text">HEALTH<span class="dot">-</span>E</span>
-  </a>
+  <header class="topbar">
+    <a class="brand" href="index.html" aria-label="HEALTH-E home">
+      <span class="brand-orb"></span>
+      <span class="brand-text">HEALTH<span class="dot">-</span>E</span>
+    </a>
 
-  <nav class="main-nav" aria-label="Primary navigation">
-    <a class="ghost-btn" href="index.html#about">About us</a>
-    <a class="ghost-btn" href="index.html#story">Storytelling</a>
-    <a class="ghost-btn" href="Monitoring.html">Monitoring</a>
-    <a class="ghost-btn" href="Analysis.html">Analysis</a>
-  </nav>
+    <nav class="main-nav" aria-label="Primary navigation">
+      <a class="ghost-btn" href="index.html#about">About us</a>
+      <a class="ghost-btn" href="index.html#story">Storytelling</a>
+      <a class="ghost-btn" href="Monitoring.html">Monitoring</a>
+      <a class="ghost-btn" href="Analysis.html">Analysis</a>
+    </nav>
 
-  <div class="topbar-actions">
-    <button class="mode-toggle" type="button" data-mode-toggle aria-label="Toggle reading mode">
-      <span class="mode-pill is-active" data-mode-pill="kid">Curious</span>
-      <span class="mode-pill" data-mode-pill="adult">Researcher</span>
-    </button>
-  </div>
-</header>
+    <div class="topbar-actions">
+      <button class="mode-toggle" type="button" data-mode-toggle aria-label="Toggle reading mode">
+        <span class="mode-pill is-active" data-mode-pill="kid">Curious</span>
+        <span class="mode-pill" data-mode-pill="adult">Researcher</span>
+      </button>
+    </div>
+  </header>
 
-<!-- ============================================================
+  <!-- ============================================================
      MONITORING PAGE
 ============================================================ -->
-<main class="mon-layout">
+  <main class="mon-layout">
 
-  <!-- Made the card clickable (cursor: pointer) to replace the removed Upload button -->
-  <section class="glass-card mon-header-card" id="drop-zone" style="cursor: pointer;" title="Click to upload a CSV file">
-    <p class="eyebrow">Environmental Control &amp; Life Support · Proof of Concept</p>
-    <h2>Crew telemetry stream with live anomaly detection.</h2>
+    <!-- Made the card clickable (cursor: pointer) to replace the removed Upload button -->
+    <section class="glass-card mon-header-card" id="drop-zone" style="cursor: pointer;"
+      title="Click to upload a CSV file">
+      <p class="eyebrow">Environmental Control &amp; Life Support · Proof of Concept</p>
+      <h2>Crew telemetry stream with live anomaly detection.</h2>
 
-    <p class="kid-copy">
-      Got a spreadsheet full of astronaut vitals? Drop it in and BIO-ORBIT zooms through every row
-      like a detective — circling the numbers that look wrong: racing hearts, low oxygen, fevers,
-      or dodgy air in the cabin. Everything happens right inside your browser.
-    </p>
-    <p class="adult-copy">
-      Upload a CSV of crew biometrics and cabin atmosphere readings. On first scan, BIO-ORBIT walks the
-      timeline and flags physiological outliers in real time — combining rolling z-score statistics with
-      physiological threshold guards so you only see events that <em>actually</em> matter.
-    </p>
+      <p class="kid-copy">
+        Got a spreadsheet full of astronaut vitals? Drop it in and BIO-ORBIT zooms through every row
+        like a detective — circling the numbers that look wrong: racing hearts, low oxygen, fevers,
+        or dodgy air in the cabin. Everything happens right inside your browser.
+      </p>
+      <p class="adult-copy">
+        Upload a CSV of crew biometrics and cabin atmosphere readings. On first scan, BIO-ORBIT walks the
+        timeline and flags physiological outliers in real time — combining rolling z-score statistics with
+        physiological threshold guards so you only see events that <em>actually</em> matter.
+      </p>
 
-    <div class="mon-actions">
-      <input type="file" id="csv-input" accept=".csv,text/csv" hidden />
-      <button class="primary-btn" id="btn-rescan" type="button">Run anomaly scan</button>
-      <button class="secondary-btn" id="btn-sample" type="button">⬇ Sample CSV</button>
+      <div class="mon-actions">
+        <input type="file" id="csv-input" accept=".csv,text/csv" hidden />
+        <button class="primary-btn" id="btn-rescan" type="button">Run anomaly scan</button>
+        <button class="secondary-btn" id="btn-sample" type="button">⬇ Sample CSV</button>
+      </div>
+
+      <div class="scan-status" id="scan-status">Awaiting telemetry — click this card to upload a CSV, or drag & drop a
+        file here.</div>
+
+      <p class="csv-hint">
+        <strong>Click this card to upload, or drag & drop your file.</strong><br>
+        Expected columns (any order): <code>time</code>, <code>heart_rate</code>, <code>spo2</code>,
+        <code>body_temp</code>, <code>co2_ppm</code>. Unknown columns are ignored, and your file
+        never leaves this browser — parsing is 100% local.
+      </p>
+    </section>
+
+    <div class="mon-stats">
+      <div class="stat-card">
+        <span class="stat-label">Records</span>
+        <span class="stat-value" id="stat-records">0</span>
+      </div>
+      <div class="stat-card alert">
+        <span class="stat-label">Anomalies detected</span>
+        <span class="stat-value" id="stat-anomalies">0</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-label">Metrics tracked</span>
+        <span class="stat-value" id="stat-metrics">0</span>
+      </div>
+      <div class="stat-card good">
+        <span class="stat-label">Scan status</span>
+        <span class="stat-value" id="stat-status">Idle</span>
+      </div>
     </div>
 
-    <div class="scan-status" id="scan-status">Awaiting telemetry — click this card to upload a CSV, or drag & drop a file here.</div>
+    <div class="mon-charts">
+      <div class="chart-card">
+        <div class="chart-head">
+          <h4>Heart Rate</h4><span class="chart-unit">bpm</span>
+        </div>
+        <canvas id="chart-heart_rate" class="chart-canvas" data-metric="heart_rate"></canvas>
+      </div>
+      <div class="chart-card">
+        <div class="chart-head">
+          <h4>Blood Oxygen (SpO₂)</h4><span class="chart-unit">%</span>
+        </div>
+        <canvas id="chart-spo2" class="chart-canvas" data-metric="spo2"></canvas>
+      </div>
+      <div class="chart-card">
+        <div class="chart-head">
+          <h4>Core Temperature</h4><span class="chart-unit">°C</span>
+        </div>
+        <canvas id="chart-body_temp" class="chart-canvas" data-metric="body_temp"></canvas>
+      </div>
+      <div class="chart-card">
+        <div class="chart-head">
+          <h4>Cabin CO₂</h4><span class="chart-unit">ppm</span>
+        </div>
+        <canvas id="chart-co2_ppm" class="chart-canvas" data-metric="co2_ppm"></canvas>
+      </div>
+    </div>
 
-    <p class="csv-hint">
-      <strong>Click this card to upload, or drag & drop your file.</strong><br>
-      Expected columns (any order): <code>time</code>, <code>heart_rate</code>, <code>spo2</code>,
-      <code>body_temp</code>, <code>co2_ppm</code>. Unknown columns are ignored, and your file
-      never leaves this browser — parsing is 100% local.
-    </p>
-  </section>
+    <div class="anomaly-card">
+      <h3>Anomaly Log <span class="anom-count" id="anom-count">0</span></h3>
+      <ul class="anomaly-list" id="anomaly-list">
+        <li class="anomaly-empty">No scan performed yet — upload a CSV or run a scan.</li>
+      </ul>
+    </div>
 
-  <div class="mon-stats">
-    <div class="stat-card">
-      <span class="stat-label">Records</span>
-      <span class="stat-value" id="stat-records">0</span>
-    </div>
-    <div class="stat-card alert">
-      <span class="stat-label">Anomalies detected</span>
-      <span class="stat-value" id="stat-anomalies">0</span>
-    </div>
-    <div class="stat-card">
-      <span class="stat-label">Metrics tracked</span>
-      <span class="stat-value" id="stat-metrics">0</span>
-    </div>
-    <div class="stat-card good">
-      <span class="stat-label">Scan status</span>
-      <span class="stat-value" id="stat-status">Idle</span>
-    </div>
-  </div>
+  </main>
 
-  <div class="mon-charts">
-    <div class="chart-card">
-      <div class="chart-head"><h4>Heart Rate</h4><span class="chart-unit">bpm</span></div>
-      <canvas id="chart-heart_rate" class="chart-canvas" data-metric="heart_rate"></canvas>
-    </div>
-    <div class="chart-card">
-      <div class="chart-head"><h4>Blood Oxygen (SpO₂)</h4><span class="chart-unit">%</span></div>
-      <canvas id="chart-spo2" class="chart-canvas" data-metric="spo2"></canvas>
-    </div>
-    <div class="chart-card">
-      <div class="chart-head"><h4>Core Temperature</h4><span class="chart-unit">°C</span></div>
-      <canvas id="chart-body_temp" class="chart-canvas" data-metric="body_temp"></canvas>
-    </div>
-    <div class="chart-card">
-      <div class="chart-head"><h4>Cabin CO₂</h4><span class="chart-unit">ppm</span></div>
-      <canvas id="chart-co2_ppm" class="chart-canvas" data-metric="co2_ppm"></canvas>
-    </div>
-  </div>
+  <footer class="copyright-bar">
+    © 2026 <strong>Team MYTHs</strong> — NASA Space Apps Cairo 2026 · Astronauts Health Challenge
+  </footer>
 
-  <div class="anomaly-card">
-    <h3>Anomaly Log <span class="anom-count" id="anom-count">0</span></h3>
-    <ul class="anomaly-list" id="anomaly-list">
-      <li class="anomaly-empty">No scan performed yet — upload a CSV or run a scan.</li>
-    </ul>
-  </div>
-
-</main>
-
-<footer class="copyright-bar">
-  © 2026 <strong>Team MYTHs</strong> — NASA Space Apps Cairo 2026 · Astronauts Health Challenge
-</footer>
-
-<!-- ============================================================
+  <!-- ============================================================
      APP SCRIPT — 100% local, no external libraries
 ============================================================ -->
-<script>
-(function () {
-  'use strict';
+  <script>
+    (function () {
+      'use strict';
 
-  /* ============================================================
-     0. STARFIELD (decorative background)
-  ============================================================ */
-  (function initStarfield() {
-    const canvas = document.getElementById('space-canvas');
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    let stars = [];
-    let w = 0, h = 0;
+      /* ============================================================
+         0. STARFIELD (decorative background)
+      ============================================================ */
+      (function initStarfield() {
+        const canvas = document.getElementById('space-canvas');
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        let stars = [];
+        let w = 0, h = 0;
 
-    function resize() {
-      w = canvas.width  = canvas.clientWidth  * Math.min(window.devicePixelRatio || 1, 2);
-      h = canvas.height = canvas.clientHeight * Math.min(window.devicePixelRatio || 1, 2);
-      const count = Math.min(220, Math.round((w * h) / 14000));
-      stars = [];
-      for (let i = 0; i < count; i++) {
-        stars.push({
-          x: Math.random() * w,
-          y: Math.random() * h,
-          r: Math.random() * 1.4 + 0.3,
-          a: Math.random() * 0.6 + 0.2,
-          tw: Math.random() * 0.02 + 0.004,
-          ph: Math.random() * Math.PI * 2
-        });
-      }
-    }
-
-    function tick(t) {
-      ctx.clearRect(0, 0, w, h);
-      for (const s of stars) {
-        const alpha = s.a + Math.sin(t * s.tw + s.ph) * 0.18;
-        ctx.beginPath();
-        ctx.fillStyle = 'rgba(240, 231, 212, ' + Math.max(0.05, alpha) + ')';
-        ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
-        ctx.fill();
-      }
-      requestAnimationFrame(tick);
-    }
-
-    window.addEventListener('resize', resize);
-    resize();
-    requestAnimationFrame(tick);
-  })();
-
-  /* ============================================================
-     1. METRIC DEFINITIONS & PHYSIOLOGICAL RULES
-  ============================================================ */
-  const METRICS = {
-    heart_rate: { label: 'Heart Rate',           unit: 'bpm', color: '#C14424' }, // Rust
-    spo2:       { label: 'Blood Oxygen (SpO₂)',  unit: '%',   color: '#D3BBA0' }, // Sand
-    body_temp:  { label: 'Core Temperature',     unit: '°C',  color: '#F0E7D4' }, // Cream
-    co2_ppm:    { label: 'Cabin CO₂',            unit: 'ppm', color: '#8C4A3E' }  // Clay
-  };
-
-  const RULES = {
-    heart_rate: { low: 45,        high: 120,          lowSpan: 6,    highSpan: 15,   z: 2.5 },
-    spo2:       { low: 92,        high: Infinity,     lowSpan: 3,    highSpan: 1,    z: 2.5 },
-    body_temp:  { low: 35.5,      high: 38.0,         lowSpan: 0.4,  highSpan: 0.5,  z: 2.5 },
-    co2_ppm:    { low: -Infinity, high: 2500,         lowSpan: 1,    highSpan: 1200, z: 3.0 }
-  };
-
-  const HEADER_ALIASES = {
-    time:       ['time', 'timestamp', 'ts', 't', 'seconds', 'sec', 'elapsed', 'mission_time', 'utc', 'date'],
-    heart_rate: ['heart_rate', 'heartrate', 'hr', 'bpm', 'pulse', 'pulse_rate', 'heart'],
-    spo2:       ['spo2', 'spo₂', 'sao2', 'o2', 'oxygen', 'blood_oxygen', 'o2_saturation', 'oxygen_saturation', 'sat'],
-    body_temp:  ['body_temp', 'body_temperature', 'temp', 'temperature', 'core_temp', 'core_temperature', 'skin_temp'],
-    co2_ppm:    ['co2_ppm', 'co2', 'co2ppm', 'cabin_co2', 'carbon_dioxide', 'co2_concentration', 'co2_level']
-  };
-
-  /* ============================================================
-     2. STATE
-  ============================================================ */
-  const dataset = {
-    rows: [],
-    metrics: [],
-    anomalies: [],
-    source: ''
-  };
-
-  const charts = {};
-  let scanRaf = null;
-  let scanning = false;
-  let revealedCount = 0;
-  let autoLoaded = false;
-
-  /* ============================================================
-     3. SMALL HELPERS
-  ============================================================ */
-  function rand(min, max) { return min + Math.random() * (max - min); }
-  function round(v, d) { return Number(v.toFixed(d)); }
-
-  function hexA(hex, alpha) {
-    const h = hex.replace('#', '');
-    const r = parseInt(h.substring(0, 2), 16);
-    const g = parseInt(h.substring(2, 4), 16);
-    const b = parseInt(h.substring(4, 6), 16);
-    return 'rgba(' + r + ', ' + g + ', ' + b + ', ' + alpha + ')';
-  }
-
-  function fmtAxis(v) {
-    const a = Math.abs(v);
-    if (a >= 1000) return Math.round(v).toLocaleString();
-    if (a >= 100)  return String(Math.round(v));
-    if (a >= 10)   return v.toFixed(0);
-    return v.toFixed(1);
-  }
-
-  function formatValue(key, v) {
-    switch (key) {
-      case 'heart_rate': return Math.round(v) + ' bpm';
-      case 'spo2':       return v.toFixed(1) + ' %';
-      case 'body_temp':  return v.toFixed(1) + ' °C';
-      case 'co2_ppm':    return Math.round(v).toLocaleString() + ' ppm';
-      default:           return String(v);
-    }
-  }
-
-  function formatTimeLabel(raw, index) {
-    const s = (raw === undefined || raw === null) ? '' : String(raw).trim();
-    if (!s) return '#' + (index + 1);
-    const num = Number(s);
-    if (Number.isFinite(num)) {
-      const total = Math.max(0, Math.round(num));
-      const hh = Math.floor(total / 3600);
-      const mm = Math.floor((total % 3600) / 60);
-      const ss = total % 60;
-      const pad = (v) => String(v).padStart(2, '0');
-      return hh > 0 ? ('T+' + hh + ':' + pad(mm) + ':' + pad(ss)) : ('T+' + pad(mm) + ':' + pad(ss));
-    }
-    return s.length > 16 ? s.slice(0, 16) : s;
-  }
-
-  function escapeHtml(str) {
-    return String(str)
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;');
-  }
-
-  function debounce(fn, wait) {
-    let t = null;
-    return function () {
-      const args = arguments;
-      clearTimeout(t);
-      t = setTimeout(() => fn.apply(null, args), wait);
-    };
-  }
-
-  /* ============================================================
-     4. MODE TOGGLE (Explorer / Science)
-  ============================================================ */
-  function setMode(mode) {
-    document.body.classList.toggle('mode-kid', mode === 'kid');
-    document.body.classList.toggle('mode-adult', mode === 'adult');
-    document.querySelectorAll('[data-mode-toggle]').forEach((btn) => {
-      btn.querySelectorAll('[data-mode-pill]').forEach((pill) => {
-        pill.classList.toggle('is-active', pill.dataset.modePill === mode);
-      });
-    });
-
-    // SAVE TO LOCAL STORAGE
-    localStorage.setItem('healthEMode', mode);
-  }
-
-  document.querySelectorAll('[data-mode-toggle]').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      setMode(document.body.classList.contains('mode-kid') ? 'adult' : 'kid');
-    });
-  });
-
-  /* ============================================================
-     5. CHART ENGINE
-  ============================================================ */
-  function initCharts() {
-    document.querySelectorAll('.chart-canvas').forEach((canvas) => {
-      const key = canvas.dataset.metric;
-      if (!key) return;
-      charts[key] = { canvas: canvas, ctx: canvas.getContext('2d') };
-    });
-  }
-
-  function niceRange(min, max) {
-    if (!Number.isFinite(min) || !Number.isFinite(max)) return { min: 0, max: 1 };
-    if (min === max) { min -= 1; max += 1; }
-    const pad = (max - min) * 0.14;
-    return { min: min - pad, max: max + pad };
-  }
-
-  function drawChart(key, visibleCount) {
-    const chart = charts[key];
-    if (!chart) return;
-
-    const canvas = chart.canvas;
-    const ctx = chart.ctx;
-    const meta = METRICS[key];
-    const card = canvas.closest('.chart-card');
-    if (!meta || !card || card.hidden) return;
-
-    const rows = dataset.rows;
-    const n = rows.length;
-    if (!n) return;
-
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
-    const w = canvas.clientWidth;
-    const h = canvas.clientHeight;
-    if (!w || !h) return;
-
-    if (canvas.width !== Math.round(w * dpr) || canvas.height !== Math.round(h * dpr)) {
-      canvas.width = Math.round(w * dpr);
-      canvas.height = Math.round(h * dpr);
-    }
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    ctx.clearRect(0, 0, w, h);
-
-    const count = Math.max(1, Math.min(visibleCount == null ? n : visibleCount, n));
-
-    const padL = 42, padR = 10, padT = 12, padB = 12;
-    const innerW = Math.max(10, w - padL - padR);
-    const innerH = Math.max(10, h - padT - padB);
-
-    // Bounds across the full series (stable axis while scanning)
-    let min = Infinity, max = -Infinity;
-    for (let i = 0; i < n; i++) {
-      const v = rows[i].values[key];
-      if (Number.isFinite(v)) {
-        if (v < min) min = v;
-        if (v > max) max = v;
-      }
-    }
-    if (!Number.isFinite(min)) return;
-    const range = niceRange(min, max);
-
-    const xAt = (i) => (n === 1 ? padL + innerW / 2 : padL + (i / (n - 1)) * innerW);
-    const yAt = (v) => padT + innerH - ((v - range.min) / (range.max - range.min)) * innerH;
-
-    // ---- grid + y labels
-    ctx.font = '10px Inter, "Segoe UI", system-ui, sans-serif';
-    ctx.textBaseline = 'middle';
-    ctx.textAlign = 'right';
-    for (let k = 0; k <= 3; k++) {
-      const y = padT + (innerH * k) / 3;
-      const val = range.max - (range.max - range.min) * (k / 3);
-      ctx.beginPath();
-      ctx.strokeStyle = 'rgba(211, 187, 160, 0.12)';
-      ctx.lineWidth = 1;
-      ctx.moveTo(padL, y);
-      ctx.lineTo(w - padR, y);
-      ctx.stroke();
-      ctx.fillStyle = 'rgba(211, 187, 160, 0.75)';
-      ctx.fillText(fmtAxis(val), padL - 7, y);
-    }
-
-    // ---- points
-    const pts = [];
-    for (let i = 0; i < count; i++) {
-      const v = rows[i].values[key];
-      if (!Number.isFinite(v)) continue;
-      pts.push({ x: xAt(i), y: yAt(v), i: i, v: v });
-    }
-
-    if (pts.length > 1) {
-      // area fill
-      const grad = ctx.createLinearGradient(0, padT, 0, padT + innerH);
-      grad.addColorStop(0, hexA(meta.color, 0.30));
-      grad.addColorStop(1, hexA(meta.color, 0));
-      ctx.beginPath();
-      ctx.moveTo(pts[0].x, padT + innerH);
-      for (let i = 0; i < pts.length; i++) ctx.lineTo(pts[i].x, pts[i].y);
-      ctx.lineTo(pts[pts.length - 1].x, padT + innerH);
-      ctx.closePath();
-      ctx.fillStyle = grad;
-      ctx.fill();
-    }
-
-    if (pts.length) {
-      // line
-      ctx.beginPath();
-      for (let i = 0; i < pts.length; i++) {
-        if (i === 0) ctx.moveTo(pts[i].x, pts[i].y);
-        else ctx.lineTo(pts[i].x, pts[i].y);
-      }
-      ctx.lineWidth = 2;
-      ctx.lineJoin = 'round';
-      ctx.lineCap = 'round';
-      ctx.strokeStyle = meta.color;
-      ctx.shadowColor = hexA(meta.color, 0.6);
-      ctx.shadowBlur = 8;
-      ctx.stroke();
-      ctx.shadowBlur = 0;
-
-      // leading dot
-      const last = pts[pts.length - 1];
-      ctx.beginPath();
-      ctx.arc(last.x, last.y, 3, 0, Math.PI * 2);
-      ctx.fillStyle = meta.color;
-      ctx.fill();
-    }
-
-    // ---- scan line while revealing
-    if (count < n && pts.length) {
-      const lastX = pts[pts.length - 1].x;
-      const lg = ctx.createLinearGradient(0, padT, 0, padT + innerH);
-      lg.addColorStop(0, 'rgba(193, 68, 36, 0.0)');
-      lg.addColorStop(0.5, 'rgba(193, 68, 36, 0.55)');
-      lg.addColorStop(1, 'rgba(193, 68, 36, 0.0)');
-      ctx.beginPath();
-      ctx.strokeStyle = lg;
-      ctx.lineWidth = 1.5;
-      ctx.moveTo(lastX, padT);
-      ctx.lineTo(lastX, padT + innerH);
-      ctx.stroke();
-    }
-
-    // ---- anomaly markers
-    const now = performance.now();
-    for (let a = 0; a < dataset.anomalies.length; a++) {
-      const anom = dataset.anomalies[a];
-      if (anom.metric !== key || anom.index >= count) continue;
-      const v = rows[anom.index] ? rows[anom.index].values[key] : null;
-      if (!Number.isFinite(v)) continue;
-
-      const x = xAt(anom.index);
-      const y = yAt(v);
-
-      // dashed guide
-      ctx.beginPath();
-      ctx.setLineDash([3, 4]);
-      ctx.strokeStyle = 'rgba(193, 68, 36, 0.22)';
-      ctx.lineWidth = 1;
-      ctx.moveTo(x, padT);
-      ctx.lineTo(x, padT + innerH);
-      ctx.stroke();
-      ctx.setLineDash([]);
-
-      // pulse while flashing (freshly detected)
-      const flashing = anom.flashUntil && now < anom.flashUntil;
-      const pulse = flashing ? 1 + 0.9 * Math.abs(Math.sin(now / 120)) : 1;
-
-      ctx.beginPath();
-      ctx.arc(x, y, 4.6 * pulse, 0, Math.PI * 2);
-      ctx.fillStyle = 'rgba(193, 68, 36, 0.18)';
-      ctx.fill();
-
-      ctx.beginPath();
-      ctx.arc(x, y, 3.2, 0, Math.PI * 2);
-      const dotColor = anom.severity === 'high' ? '#C14424' : '#D3BBA0';
-      ctx.fillStyle = dotColor;
-      ctx.shadowColor = dotColor;
-      ctx.shadowBlur = 10;
-      ctx.fill();
-      ctx.shadowBlur = 0;
-
-      ctx.lineWidth = 1.4;
-      ctx.strokeStyle = 'rgba(240, 231, 212, 0.85)';
-      ctx.stroke();
-    }
-  }
-
-  function drawAllCharts(visibleCount) {
-    Object.keys(charts).forEach((key) => drawChart(key, visibleCount));
-  }
-
-  /* ============================================================
-     6. ANOMALY DETECTION
-  ============================================================ */
-  function ratioSeverity(ratio) {
-    if (ratio >= 1.2) return 'high';
-    if (ratio >= 0.45) return 'med';
-    return 'low';
-  }
-
-  function detectAnomalies(rows, metrics) {
-    const out = [];
-    const n = rows.length;
-    const WINDOW = 15;
-
-    for (let m = 0; m < metrics.length; m++) {
-      const key = metrics[m];
-      const rule = RULES[key];
-      const meta = METRICS[key];
-      if (!rule || !meta) continue;
-
-      const vals = new Array(n);
-      for (let i = 0; i < n; i++) vals[i] = rows[i].values[key];
-
-      let lastIndex = -99;
-
-      for (let i = 0; i < n; i++) {
-        const v = vals[i];
-        if (!Number.isFinite(v)) continue;
-
-        const from = Math.max(0, i - WINDOW);
-        const win = [];
-        for (let j = from; j < i; j++) {
-          if (Number.isFinite(vals[j])) win.push(vals[j]);
-        }
-
-        let z = 0;
-        if (win.length >= 5) {
-          let sum = 0;
-          for (let j = 0; j < win.length; j++) sum += win[j];
-          const mean = sum / win.length;
-          let varSum = 0;
-          for (let j = 0; j < win.length; j++) {
-            const d = win[j] - mean;
-            varSum += d * d;
+        function resize() {
+          w = canvas.width = canvas.clientWidth * Math.min(window.devicePixelRatio || 1, 2);
+          h = canvas.height = canvas.clientHeight * Math.min(window.devicePixelRatio || 1, 2);
+          const count = Math.min(220, Math.round((w * h) / 14000));
+          stars = [];
+          for (let i = 0; i < count; i++) {
+            stars.push({
+              x: Math.random() * w,
+              y: Math.random() * h,
+              r: Math.random() * 1.4 + 0.3,
+              a: Math.random() * 0.6 + 0.2,
+              tw: Math.random() * 0.02 + 0.004,
+              ph: Math.random() * Math.PI * 2
+            });
           }
-          const sd = Math.sqrt(varSum / win.length);
-          if (sd > 1e-6) z = (v - mean) / sd;
         }
 
-        const above = Number.isFinite(rule.high) && v > rule.high;
-        const below = Number.isFinite(rule.low) && v < rule.low;
-        const zFlag = Math.abs(z) >= rule.z;
-
-        if (!above && !below && !zFlag) continue;
-
-        if (i - lastIndex <= 3) continue;
-        lastIndex = i;
-
-        let severity = 'low';
-        let reason = '';
-
-        if (above) {
-          severity = ratioSeverity((v - rule.high) / rule.highSpan);
-          reason = 'above safe threshold';
-        } else if (below) {
-          severity = ratioSeverity((rule.low - v) / rule.lowSpan);
-          reason = 'below safe threshold';
-        } else {
-          severity = Math.abs(z) >= 4 ? 'med' : 'low';
-          reason = 'sudden deviation (z = ' + z.toFixed(1) + ')';
+        function tick(t) {
+          ctx.clearRect(0, 0, w, h);
+          for (const s of stars) {
+            const alpha = s.a + Math.sin(t * s.tw + s.ph) * 0.18;
+            ctx.beginPath();
+            ctx.fillStyle = 'rgba(240, 231, 212, ' + Math.max(0.05, alpha) + ')';
+            ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+            ctx.fill();
+          }
+          requestAnimationFrame(tick);
         }
 
-        out.push({
-          index: i,
-          metric: key,
-          value: v,
-          severity: severity,
-          reason: reason,
-          timeLabel: rows[i].timeLabel,
-          logged: false,
-          flashUntil: 0
+        window.addEventListener('resize', resize);
+        resize();
+        requestAnimationFrame(tick);
+      })();
+
+      /* ============================================================
+         1. METRIC DEFINITIONS & PHYSIOLOGICAL RULES
+      ============================================================ */
+      const METRICS = {
+        heart_rate: { label: 'Heart Rate', unit: 'bpm', color: '#C14424' }, // Rust
+        spo2: { label: 'Blood Oxygen (SpO₂)', unit: '%', color: '#D3BBA0' }, // Sand
+        body_temp: { label: 'Core Temperature', unit: '°C', color: '#F0E7D4' }, // Cream
+        co2_ppm: { label: 'Cabin CO₂', unit: 'ppm', color: '#8C4A3E' }  // Clay
+      };
+
+      const RULES = {
+        heart_rate: { low: 45, high: 120, lowSpan: 6, highSpan: 15, z: 2.5 },
+        spo2: { low: 92, high: Infinity, lowSpan: 3, highSpan: 1, z: 2.5 },
+        body_temp: { low: 35.5, high: 38.0, lowSpan: 0.4, highSpan: 0.5, z: 2.5 },
+        co2_ppm: { low: -Infinity, high: 2500, lowSpan: 1, highSpan: 1200, z: 3.0 }
+      };
+
+      const HEADER_ALIASES = {
+        time: ['time', 'timestamp', 'ts', 't', 'seconds', 'sec', 'elapsed', 'mission_time', 'utc', 'date'],
+        heart_rate: ['heart_rate', 'heartrate', 'hr', 'bpm', 'pulse', 'pulse_rate', 'heart'],
+        spo2: ['spo2', 'spo₂', 'sao2', 'o2', 'oxygen', 'blood_oxygen', 'o2_saturation', 'oxygen_saturation', 'sat'],
+        body_temp: ['body_temp', 'body_temperature', 'temp', 'temperature', 'core_temp', 'core_temperature', 'skin_temp'],
+        co2_ppm: ['co2_ppm', 'co2', 'co2ppm', 'cabin_co2', 'carbon_dioxide', 'co2_concentration', 'co2_level']
+      };
+
+      /* ============================================================
+         2. STATE
+      ============================================================ */
+      const dataset = {
+        rows: [],
+        metrics: [],
+        anomalies: [],
+        source: ''
+      };
+
+      const charts = {};
+      let scanRaf = null;
+      let scanning = false;
+      let revealedCount = 0;
+      let autoLoaded = false;
+
+      /* ============================================================
+         3. SMALL HELPERS
+      ============================================================ */
+      function rand(min, max) { return min + Math.random() * (max - min); }
+      function round(v, d) { return Number(v.toFixed(d)); }
+
+      function hexA(hex, alpha) {
+        const h = hex.replace('#', '');
+        const r = parseInt(h.substring(0, 2), 16);
+        const g = parseInt(h.substring(2, 4), 16);
+        const b = parseInt(h.substring(4, 6), 16);
+        return 'rgba(' + r + ', ' + g + ', ' + b + ', ' + alpha + ')';
+      }
+
+      function fmtAxis(v) {
+        const a = Math.abs(v);
+        if (a >= 1000) return Math.round(v).toLocaleString();
+        if (a >= 100) return String(Math.round(v));
+        if (a >= 10) return v.toFixed(0);
+        return v.toFixed(1);
+      }
+
+      function formatValue(key, v) {
+        switch (key) {
+          case 'heart_rate': return Math.round(v) + ' bpm';
+          case 'spo2': return v.toFixed(1) + ' %';
+          case 'body_temp': return v.toFixed(1) + ' °C';
+          case 'co2_ppm': return Math.round(v).toLocaleString() + ' ppm';
+          default: return String(v);
+        }
+      }
+
+      function formatTimeLabel(raw, index) {
+        const s = (raw === undefined || raw === null) ? '' : String(raw).trim();
+        if (!s) return '#' + (index + 1);
+        const num = Number(s);
+        if (Number.isFinite(num)) {
+          const total = Math.max(0, Math.round(num));
+          const hh = Math.floor(total / 3600);
+          const mm = Math.floor((total % 3600) / 60);
+          const ss = total % 60;
+          const pad = (v) => String(v).padStart(2, '0');
+          return hh > 0 ? ('T+' + hh + ':' + pad(mm) + ':' + pad(ss)) : ('T+' + pad(mm) + ':' + pad(ss));
+        }
+        return s.length > 16 ? s.slice(0, 16) : s;
+      }
+
+      function escapeHtml(str) {
+        return String(str)
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;');
+      }
+
+      function debounce(fn, wait) {
+        let t = null;
+        return function () {
+          const args = arguments;
+          clearTimeout(t);
+          t = setTimeout(() => fn.apply(null, args), wait);
+        };
+      }
+
+      /* ============================================================
+         4. MODE TOGGLE (Explorer / Science)
+      ============================================================ */
+      function setMode(mode) {
+        document.body.classList.toggle('mode-kid', mode === 'kid');
+        document.body.classList.toggle('mode-adult', mode === 'adult');
+        document.querySelectorAll('[data-mode-toggle]').forEach((btn) => {
+          btn.querySelectorAll('[data-mode-pill]').forEach((pill) => {
+            pill.classList.toggle('is-active', pill.dataset.modePill === mode);
+          });
+        });
+
+        // SAVE TO LOCAL STORAGE
+        localStorage.setItem('healthEMode', mode);
+      }
+
+      document.querySelectorAll('[data-mode-toggle]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          setMode(document.body.classList.contains('mode-kid') ? 'adult' : 'kid');
+        });
+      });
+
+      /* ============================================================
+         5. CHART ENGINE
+      ============================================================ */
+      function initCharts() {
+        document.querySelectorAll('.chart-canvas').forEach((canvas) => {
+          const key = canvas.dataset.metric;
+          if (!key) return;
+          charts[key] = { canvas: canvas, ctx: canvas.getContext('2d') };
         });
       }
-    }
 
-    out.sort((a, b) => a.index - b.index || a.metric.localeCompare(b.metric));
-    return out;
-  }
+      function niceRange(min, max) {
+        if (!Number.isFinite(min) || !Number.isFinite(max)) return { min: 0, max: 1 };
+        if (min === max) { min -= 1; max += 1; }
+        const pad = (max - min) * 0.14;
+        return { min: min - pad, max: max + pad };
+      }
 
-  /* ============================================================
-     7. LOG UI
-  ============================================================ */
-  function updateAnomCount() {
-    const list = document.getElementById('anomaly-list');
-    const items = list.querySelectorAll('.anomaly-item').length;
-    document.getElementById('anom-count').textContent = String(items);
-    return items;
-  }
+      function drawChart(key, visibleCount) {
+        const chart = charts[key];
+        if (!chart) return;
 
-  function clearLog(message) {
-    const list = document.getElementById('anomaly-list');
-    list.innerHTML = '';
-    const li = document.createElement('li');
-    li.className = 'anomaly-empty';
-    li.textContent = message;
-    list.appendChild(li);
-    document.getElementById('anom-count').textContent = '0';
-    document.getElementById('stat-anomalies').textContent = '0';
-  }
+        const canvas = chart.canvas;
+        const ctx = chart.ctx;
+        const meta = METRICS[key];
+        const card = canvas.closest('.chart-card');
+        if (!meta || !card || card.hidden) return;
 
-  function pushLogItem(anom) {
-    const list = document.getElementById('anomaly-list');
-    const empty = list.querySelector('.anomaly-empty');
-    if (empty) empty.remove();
+        const rows = dataset.rows;
+        const n = rows.length;
+        if (!n) return;
 
-    const meta = METRICS[anom.metric];
-    const sevLabel = anom.severity === 'high' ? 'High'
-                   : anom.severity === 'med'  ? 'Moderate'
-                   : 'Low';
+        const dpr = Math.min(window.devicePixelRatio || 1, 2);
+        const w = canvas.clientWidth;
+        const h = canvas.clientHeight;
+        if (!w || !h) return;
 
-    const li = document.createElement('li');
-    li.className = 'anomaly-item';
-    li.innerHTML =
-      '<span class="anom-time">' + escapeHtml(anom.timeLabel) + '</span>' +
-      '<span class="anom-metric">' + escapeHtml(meta.label) +
-        '<span class="anom-reason">' + escapeHtml(anom.reason) + '</span>' +
-      '</span>' +
-      '<span class="anom-value">' + escapeHtml(formatValue(anom.metric, anom.value)) + '</span>' +
-      '<span class="anom-sev ' + anom.severity + '">' + sevLabel + '</span>';
+        if (canvas.width !== Math.round(w * dpr) || canvas.height !== Math.round(h * dpr)) {
+          canvas.width = Math.round(w * dpr);
+          canvas.height = Math.round(h * dpr);
+        }
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        ctx.clearRect(0, 0, w, h);
 
-    list.appendChild(li);
-    list.scrollTop = list.scrollHeight;
-    updateAnomCount();
-  }
+        const count = Math.max(1, Math.min(visibleCount == null ? n : visibleCount, n));
 
-  function setStatus(type, text) {
-    const el = document.getElementById('scan-status');
-    el.className = 'scan-status' + (type ? ' is-' + type : '');
-    el.textContent = text;
-  }
+        const padL = 42, padR = 10, padT = 12, padB = 12;
+        const innerW = Math.max(10, w - padL - padR);
+        const innerH = Math.max(10, h - padT - padB);
 
-  /* ============================================================
-     8. SCAN ANIMATION
-  ============================================================ */
-  function stopScan() {
-    if (scanRaf !== null) {
-      cancelAnimationFrame(scanRaf);
-      scanRaf = null;
-    }
-    scanning = false;
-  }
+        // Bounds across the full series (stable axis while scanning)
+        let min = Infinity, max = -Infinity;
+        for (let i = 0; i < n; i++) {
+          const v = rows[i].values[key];
+          if (Number.isFinite(v)) {
+            if (v < min) min = v;
+            if (v > max) max = v;
+          }
+        }
+        if (!Number.isFinite(min)) return;
+        const range = niceRange(min, max);
 
-  function finishScan(total, count) {
-    scanning = false;
-    scanRaf = null;
-    revealedCount = total;
+        const xAt = (i) => (n === 1 ? padL + innerW / 2 : padL + (i / (n - 1)) * innerW);
+        const yAt = (v) => padT + innerH - ((v - range.min) / (range.max - range.min)) * innerH;
 
-    document.getElementById('stat-status').textContent = 'Complete';
-    document.getElementById('stat-anomalies').textContent = String(count);
+        // ---- grid + y labels
+        ctx.font = '10px Inter, "Segoe UI", system-ui, sans-serif';
+        ctx.textBaseline = 'middle';
+        ctx.textAlign = 'right';
+        for (let k = 0; k <= 3; k++) {
+          const y = padT + (innerH * k) / 3;
+          const val = range.max - (range.max - range.min) * (k / 3);
+          ctx.beginPath();
+          ctx.strokeStyle = 'rgba(211, 187, 160, 0.12)';
+          ctx.lineWidth = 1;
+          ctx.moveTo(padL, y);
+          ctx.lineTo(w - padR, y);
+          ctx.stroke();
+          ctx.fillStyle = 'rgba(211, 187, 160, 0.75)';
+          ctx.fillText(fmtAxis(val), padL - 7, y);
+        }
 
-    if (count === 0) {
-      clearLog('No anomalies detected — telemetry looks nominal.');
-      setStatus('done', 'Scan complete — 0 anomalies across ' + total + ' records.');
-    } else {
-      setStatus('done', 'Scan complete — ' + count + ' anomal' + (count === 1 ? 'y' : 'ies') +
-                        ' flagged across ' + total + ' records.');
-    }
-  }
+        // ---- points
+        const pts = [];
+        for (let i = 0; i < count; i++) {
+          const v = rows[i].values[key];
+          if (!Number.isFinite(v)) continue;
+          pts.push({ x: xAt(i), y: yAt(v), i: i, v: v });
+        }
 
-  function startScan() {
-    if (!dataset.rows.length) {
-      setStatus('error', 'No telemetry loaded yet — upload a CSV first.');
-      return;
-    }
+        if (pts.length > 1) {
+          // area fill
+          const grad = ctx.createLinearGradient(0, padT, 0, padT + innerH);
+          grad.addColorStop(0, hexA(meta.color, 0.30));
+          grad.addColorStop(1, hexA(meta.color, 0));
+          ctx.beginPath();
+          ctx.moveTo(pts[0].x, padT + innerH);
+          for (let i = 0; i < pts.length; i++) ctx.lineTo(pts[i].x, pts[i].y);
+          ctx.lineTo(pts[pts.length - 1].x, padT + innerH);
+          ctx.closePath();
+          ctx.fillStyle = grad;
+          ctx.fill();
+        }
 
-    stopScan();
+        if (pts.length) {
+          // line
+          ctx.beginPath();
+          for (let i = 0; i < pts.length; i++) {
+            if (i === 0) ctx.moveTo(pts[i].x, pts[i].y);
+            else ctx.lineTo(pts[i].x, pts[i].y);
+          }
+          ctx.lineWidth = 2;
+          ctx.lineJoin = 'round';
+          ctx.lineCap = 'round';
+          ctx.strokeStyle = meta.color;
+          ctx.shadowColor = hexA(meta.color, 0.6);
+          ctx.shadowBlur = 8;
+          ctx.stroke();
+          ctx.shadowBlur = 0;
 
-    const n = dataset.rows.length;
-    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const duration = reduceMotion ? 1 : Math.min(4200, Math.max(1600, n * 40));
+          // leading dot
+          const last = pts[pts.length - 1];
+          ctx.beginPath();
+          ctx.arc(last.x, last.y, 3, 0, Math.PI * 2);
+          ctx.fillStyle = meta.color;
+          ctx.fill();
+        }
 
-    dataset.anomalies.forEach((a) => {
-      a.logged = false;
-      a.flashUntil = 0;
-    });
+        // ---- scan line while revealing
+        if (count < n && pts.length) {
+          const lastX = pts[pts.length - 1].x;
+          const lg = ctx.createLinearGradient(0, padT, 0, padT + innerH);
+          lg.addColorStop(0, 'rgba(193, 68, 36, 0.0)');
+          lg.addColorStop(0.5, 'rgba(193, 68, 36, 0.55)');
+          lg.addColorStop(1, 'rgba(193, 68, 36, 0.0)');
+          ctx.beginPath();
+          ctx.strokeStyle = lg;
+          ctx.lineWidth = 1.5;
+          ctx.moveTo(lastX, padT);
+          ctx.lineTo(lastX, padT + innerH);
+          ctx.stroke();
+        }
 
-    clearLog('Scanning…');
-    setStatus('scanning', 'Scanning ' + n + ' records…');
-    document.getElementById('stat-status').textContent = 'Scanning';
-    document.getElementById('stat-anomalies').textContent = '0';
+        // ---- anomaly markers
+        const now = performance.now();
+        for (let a = 0; a < dataset.anomalies.length; a++) {
+          const anom = dataset.anomalies[a];
+          if (anom.metric !== key || anom.index >= count) continue;
+          const v = rows[anom.index] ? rows[anom.index].values[key] : null;
+          if (!Number.isFinite(v)) continue;
 
-    scanning = true;
-    revealedCount = 0;
-    const started = performance.now();
-    let logged = 0;
+          const x = xAt(anom.index);
+          const y = yAt(v);
 
-    function frame(now) {
-      if (!scanning) return;
+          // dashed guide
+          ctx.beginPath();
+          ctx.setLineDash([3, 4]);
+          ctx.strokeStyle = 'rgba(193, 68, 36, 0.22)';
+          ctx.lineWidth = 1;
+          ctx.moveTo(x, padT);
+          ctx.lineTo(x, padT + innerH);
+          ctx.stroke();
+          ctx.setLineDash([]);
 
-      const f = Math.min(1, (now - started) / duration);
-      const revealed = Math.max(1, Math.round(f * n));
-      revealedCount = revealed;
+          // pulse while flashing (freshly detected)
+          const flashing = anom.flashUntil && now < anom.flashUntil;
+          const pulse = flashing ? 1 + 0.9 * Math.abs(Math.sin(now / 120)) : 1;
 
-      for (let i = 0; i < dataset.anomalies.length; i++) {
-        const a = dataset.anomalies[i];
-        if (!a.logged && a.index < revealed) {
-          a.logged = true;
-          a.flashUntil = now + 1000;
-          pushLogItem(a);
-          logged++;
+          ctx.beginPath();
+          ctx.arc(x, y, 4.6 * pulse, 0, Math.PI * 2);
+          ctx.fillStyle = 'rgba(193, 68, 36, 0.18)';
+          ctx.fill();
+
+          ctx.beginPath();
+          ctx.arc(x, y, 3.2, 0, Math.PI * 2);
+          const dotColor = anom.severity === 'high' ? '#C14424' : '#D3BBA0';
+          ctx.fillStyle = dotColor;
+          ctx.shadowColor = dotColor;
+          ctx.shadowBlur = 10;
+          ctx.fill();
+          ctx.shadowBlur = 0;
+
+          ctx.lineWidth = 1.4;
+          ctx.strokeStyle = 'rgba(240, 231, 212, 0.85)';
+          ctx.stroke();
         }
       }
 
-      document.getElementById('stat-anomalies').textContent = String(logged);
-
-      if (f < 1) {
-        setStatus('scanning', 'Scanning… ' + revealed + '/' + n + ' records · ' +
-                              logged + ' anomal' + (logged === 1 ? 'y' : 'ies') + ' flagged');
-        drawAllCharts(revealed);
-        scanRaf = requestAnimationFrame(frame);
-      } else {
-        drawAllCharts(n);
-        finishScan(n, logged);
+      function drawAllCharts(visibleCount) {
+        Object.keys(charts).forEach((key) => drawChart(key, visibleCount));
       }
-    }
 
-    scanRaf = requestAnimationFrame(frame);
-  }
-
-  /* ============================================================
-     9. CSV PARSING
-  ============================================================ */
-  function normalizeHeader(rawHeader) {
-    const clean = String(rawHeader)
-      .toLowerCase()
-      .trim()
-      .replace(/["']/g, '')
-      .replace(/[\s\-]+/g, '_');
-
-    const keys = Object.keys(HEADER_ALIASES);
-
-    for (let i = 0; i < keys.length; i++) {
-      if (HEADER_ALIASES[keys[i]].indexOf(clean) !== -1) return keys[i];
-    }
-    for (let i = 0; i < keys.length; i++) {
-      const aliases = HEADER_ALIASES[keys[i]];
-      for (let j = 0; j < aliases.length; j++) {
-        const alias = aliases[j];
-        if (alias.length >= 4 && clean.indexOf(alias) !== -1) return keys[i];
+      /* ============================================================
+         6. ANOMALY DETECTION
+      ============================================================ */
+      function ratioSeverity(ratio) {
+        if (ratio >= 1.2) return 'high';
+        if (ratio >= 0.45) return 'med';
+        return 'low';
       }
-    }
-    return null;
-  }
 
-  function splitCSVLine(line) {
-    const out = [];
-    let cur = '';
-    let inQuotes = false;
+      function detectAnomalies(rows, metrics) {
+        const out = [];
+        const n = rows.length;
+        const WINDOW = 15;
 
-    for (let i = 0; i < line.length; i++) {
-      const ch = line[i];
-      if (ch === '"') {
-        if (inQuotes && line[i + 1] === '"') { cur += '"'; i++; }
-        else inQuotes = !inQuotes;
-      } else if (ch === ',' && !inQuotes) {
-        out.push(cur.trim());
-        cur = '';
-      } else {
-        cur += ch;
+        for (let m = 0; m < metrics.length; m++) {
+          const key = metrics[m];
+          const rule = RULES[key];
+          const meta = METRICS[key];
+          if (!rule || !meta) continue;
+
+          const vals = new Array(n);
+          for (let i = 0; i < n; i++) vals[i] = rows[i].values[key];
+
+          let lastIndex = -99;
+
+          for (let i = 0; i < n; i++) {
+            const v = vals[i];
+            if (!Number.isFinite(v)) continue;
+
+            const from = Math.max(0, i - WINDOW);
+            const win = [];
+            for (let j = from; j < i; j++) {
+              if (Number.isFinite(vals[j])) win.push(vals[j]);
+            }
+
+            let z = 0;
+            if (win.length >= 5) {
+              let sum = 0;
+              for (let j = 0; j < win.length; j++) sum += win[j];
+              const mean = sum / win.length;
+              let varSum = 0;
+              for (let j = 0; j < win.length; j++) {
+                const d = win[j] - mean;
+                varSum += d * d;
+              }
+              const sd = Math.sqrt(varSum / win.length);
+              if (sd > 1e-6) z = (v - mean) / sd;
+            }
+
+            const above = Number.isFinite(rule.high) && v > rule.high;
+            const below = Number.isFinite(rule.low) && v < rule.low;
+            const zFlag = Math.abs(z) >= rule.z;
+
+            if (!above && !below && !zFlag) continue;
+
+            if (i - lastIndex <= 3) continue;
+            lastIndex = i;
+
+            let severity = 'low';
+            let reason = '';
+
+            if (above) {
+              severity = ratioSeverity((v - rule.high) / rule.highSpan);
+              reason = 'above safe threshold';
+            } else if (below) {
+              severity = ratioSeverity((rule.low - v) / rule.lowSpan);
+              reason = 'below safe threshold';
+            } else {
+              severity = Math.abs(z) >= 4 ? 'med' : 'low';
+              reason = 'sudden deviation (z = ' + z.toFixed(1) + ')';
+            }
+
+            out.push({
+              index: i,
+              metric: key,
+              value: v,
+              severity: severity,
+              reason: reason,
+              timeLabel: rows[i].timeLabel,
+              logged: false,
+              flashUntil: 0
+            });
+          }
+        }
+
+        out.sort((a, b) => a.index - b.index || a.metric.localeCompare(b.metric));
+        return out;
       }
-    }
-    out.push(cur.trim());
-    return out;
-  }
 
-  function parseCSV(text) {
-    const cleanText = text.replace(/^\uFEFF/, '').replace(/\r\n?/g, '\n');
-    const lines = cleanText.split('\n').filter((l) => l.trim().length);
-    if (lines.length < 2) {
-      throw new Error('CSV needs a header row and at least one data row.');
-    }
+      /* ============================================================
+         7. LOG UI
+      ============================================================ */
+      function updateAnomCount() {
+        const list = document.getElementById('anomaly-list');
+        const items = list.querySelectorAll('.anomaly-item').length;
+        document.getElementById('anom-count').textContent = String(items);
+        return items;
+      }
 
-    const headerCells = splitCSVLine(lines[0]);
-    const columnMap = {};
-    headerCells.forEach((cell, i) => {
-      const key = normalizeHeader(cell);
-      if (key && columnMap[key] === undefined) columnMap[key] = i;
-    });
+      function clearLog(message) {
+        const list = document.getElementById('anomaly-list');
+        list.innerHTML = '';
+        const li = document.createElement('li');
+        li.className = 'anomaly-empty';
+        li.textContent = message;
+        list.appendChild(li);
+        document.getElementById('anom-count').textContent = '0';
+        document.getElementById('stat-anomalies').textContent = '0';
+      }
 
-    const metricKeys = Object.keys(METRICS).filter((k) => columnMap[k] !== undefined);
-    if (!metricKeys.length) {
-      throw new Error('No recognised columns. Expected headers like time, heart_rate, spo2, body_temp, co2_ppm.');
-    }
+      function pushLogItem(anom) {
+        const list = document.getElementById('anomaly-list');
+        const empty = list.querySelector('.anomaly-empty');
+        if (empty) empty.remove();
 
-    const rows = [];
-    for (let i = 1; i < lines.length; i++) {
-      const cells = splitCSVLine(lines[i]);
-      const values = {};
-      let hasData = false;
+        const meta = METRICS[anom.metric];
+        const sevLabel = anom.severity === 'high' ? 'High'
+          : anom.severity === 'med' ? 'Moderate'
+            : 'Low';
 
-      for (let m = 0; m < metricKeys.length; m++) {
-        const key = metricKeys[m];
-        const raw = cells[columnMap[key]];
-        const num = (raw === undefined || raw === '') ? NaN : Number(raw);
-        if (Number.isFinite(num)) {
-          values[key] = num;
-          hasData = true;
+        const li = document.createElement('li');
+        li.className = 'anomaly-item';
+        li.innerHTML =
+          '<span class="anom-time">' + escapeHtml(anom.timeLabel) + '</span>' +
+          '<span class="anom-metric">' + escapeHtml(meta.label) +
+          '<span class="anom-reason">' + escapeHtml(anom.reason) + '</span>' +
+          '</span>' +
+          '<span class="anom-value">' + escapeHtml(formatValue(anom.metric, anom.value)) + '</span>' +
+          '<span class="anom-sev ' + anom.severity + '">' + sevLabel + '</span>';
+
+        list.appendChild(li);
+        list.scrollTop = list.scrollHeight;
+        updateAnomCount();
+      }
+
+      function setStatus(type, text) {
+        const el = document.getElementById('scan-status');
+        el.className = 'scan-status' + (type ? ' is-' + type : '');
+        el.textContent = text;
+      }
+
+      /* ============================================================
+         8. SCAN ANIMATION
+      ============================================================ */
+      function stopScan() {
+        if (scanRaf !== null) {
+          cancelAnimationFrame(scanRaf);
+          scanRaf = null;
+        }
+        scanning = false;
+      }
+
+      function finishScan(total, count) {
+        scanning = false;
+        scanRaf = null;
+        revealedCount = total;
+
+        document.getElementById('stat-status').textContent = 'Complete';
+        document.getElementById('stat-anomalies').textContent = String(count);
+
+        if (count === 0) {
+          clearLog('No anomalies detected — telemetry looks nominal.');
+          setStatus('done', 'Scan complete — 0 anomalies across ' + total + ' records.');
         } else {
-          values[key] = null;
+          setStatus('done', 'Scan complete — ' + count + ' anomal' + (count === 1 ? 'y' : 'ies') +
+            ' flagged across ' + total + ' records.');
         }
       }
 
-      if (!hasData) continue;
+      function startScan() {
+        if (!dataset.rows.length) {
+          setStatus('error', 'No telemetry loaded yet — upload a CSV first.');
+          return;
+        }
 
-      const rawTime = columnMap.time !== undefined ? cells[columnMap.time] : '';
-      rows.push({
-        values: values,
-        timeLabel: formatTimeLabel(rawTime, rows.length)
-      });
-    }
+        stopScan();
 
-    if (!rows.length) throw new Error('No numeric data rows could be parsed.');
+        const n = dataset.rows.length;
+        const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        const duration = reduceMotion ? 1 : Math.min(4200, Math.max(1600, n * 40));
 
-    return { rows: rows, metrics: metricKeys };
-  }
+        dataset.anomalies.forEach((a) => {
+          a.logged = false;
+          a.flashUntil = 0;
+        });
 
-  function readFile(file) {
-    if (!file) return;
-    setStatus('scanning', 'Reading “' + file.name + '”…');
-    const reader = new FileReader();
-    reader.onload = function () {
-      try {
-        const parsed = parseCSV(String(reader.result));
-        loadData(parsed.rows, parsed.metrics, file.name);
-      } catch (err) {
-        setStatus('error', 'Could not read CSV: ' + err.message);
-        document.getElementById('stat-status').textContent = 'Error';
-      }
-    };
-    reader.onerror = function () {
-      setStatus('error', 'Could not read that file.');
-      document.getElementById('stat-status').textContent = 'Error';
-    };
-    reader.readAsText(file);
-  }
+        clearLog('Scanning…');
+        setStatus('scanning', 'Scanning ' + n + ' records…');
+        document.getElementById('stat-status').textContent = 'Scanning';
+        document.getElementById('stat-anomalies').textContent = '0';
 
-  /* ============================================================
-     10. DEMO TELEMETRY GENERATOR
-  ============================================================ */
-  function generateDemoData(count) {
-    const n = count || 96;
-    const rows = [];
+        scanning = true;
+        revealedCount = 0;
+        const started = performance.now();
+        let logged = 0;
 
-    const events = {
-      14: { heart_rate: 142 },
-      26: { spo2: 87.4 },
-      41: { body_temp: 38.9 },
-      55: { co2_ppm: 4600 },
-      68: { heart_rate: 128, body_temp: 37.9 },
-      79: { co2_ppm: 3150 },
-      88: { body_temp: 35.1, heart_rate: 43 }
-    };
+        function frame(now) {
+          if (!scanning) return;
 
-    for (let i = 0; i < n; i++) {
-      let hr   = 62 + Math.sin(i / 7) * 4 + rand(-2.5, 2.5);
-      let spo2 = 98.2 + Math.sin(i / 9) * 0.55 + rand(-0.25, 0.25);
-      let temp = 36.7 + Math.sin(i / 12) * 0.12 + rand(-0.05, 0.05);
-      let co2  = 780 + Math.sin(i / 6) * 90 + rand(-35, 35);
+          const f = Math.min(1, (now - started) / duration);
+          const revealed = Math.max(1, Math.round(f * n));
+          revealedCount = revealed;
 
-      const ev = events[i];
-      if (ev) {
-        if (ev.heart_rate !== undefined) hr   = ev.heart_rate + rand(-1.5, 1.5);
-        if (ev.spo2 !== undefined)       spo2 = ev.spo2 + rand(-0.2, 0.2);
-        if (ev.body_temp !== undefined)  temp = ev.body_temp + rand(-0.05, 0.05);
-        if (ev.co2_ppm !== undefined)    co2  = ev.co2_ppm + rand(-60, 60);
+          for (let i = 0; i < dataset.anomalies.length; i++) {
+            const a = dataset.anomalies[i];
+            if (!a.logged && a.index < revealed) {
+              a.logged = true;
+              a.flashUntil = now + 1000;
+              pushLogItem(a);
+              logged++;
+            }
+          }
+
+          document.getElementById('stat-anomalies').textContent = String(logged);
+
+          if (f < 1) {
+            setStatus('scanning', 'Scanning… ' + revealed + '/' + n + ' records · ' +
+              logged + ' anomal' + (logged === 1 ? 'y' : 'ies') + ' flagged');
+            drawAllCharts(revealed);
+            scanRaf = requestAnimationFrame(frame);
+          } else {
+            drawAllCharts(n);
+            finishScan(n, logged);
+          }
+        }
+
+        scanRaf = requestAnimationFrame(frame);
       }
 
-      if (i === 15) hr   = 104 + rand(-3, 3);
-      if (i === 27) spo2 = 92.8 + rand(-0.3, 0.3);
-      if (i === 42) temp = 37.6 + rand(-0.1, 0.1);
-      if (i === 56) co2  = 2400 + rand(-80, 80);
+      /* ============================================================
+         9. CSV PARSING
+      ============================================================ */
+      function normalizeHeader(rawHeader) {
+        const clean = String(rawHeader)
+          .toLowerCase()
+          .trim()
+          .replace(/["']/g, '')
+          .replace(/[\s\-]+/g, '_');
 
-      rows.push({
-        values: {
-          heart_rate: round(hr, 1),
-          spo2:       round(spo2, 1),
-          body_temp:  round(temp, 2),
-          co2_ppm:    Math.round(co2)
-        },
-        timeLabel: formatTimeLabel(i * 30, i)
+        const keys = Object.keys(HEADER_ALIASES);
+
+        for (let i = 0; i < keys.length; i++) {
+          if (HEADER_ALIASES[keys[i]].indexOf(clean) !== -1) return keys[i];
+        }
+        for (let i = 0; i < keys.length; i++) {
+          const aliases = HEADER_ALIASES[keys[i]];
+          for (let j = 0; j < aliases.length; j++) {
+            const alias = aliases[j];
+            if (alias.length >= 4 && clean.indexOf(alias) !== -1) return keys[i];
+          }
+        }
+        return null;
+      }
+
+      function splitCSVLine(line) {
+        const out = [];
+        let cur = '';
+        let inQuotes = false;
+
+        for (let i = 0; i < line.length; i++) {
+          const ch = line[i];
+          if (ch === '"') {
+            if (inQuotes && line[i + 1] === '"') { cur += '"'; i++; }
+            else inQuotes = !inQuotes;
+          } else if (ch === ',' && !inQuotes) {
+            out.push(cur.trim());
+            cur = '';
+          } else {
+            cur += ch;
+          }
+        }
+        out.push(cur.trim());
+        return out;
+      }
+
+      function parseCSV(text) {
+        const cleanText = text.replace(/^\uFEFF/, '').replace(/\r\n?/g, '\n');
+        const lines = cleanText.split('\n').filter((l) => l.trim().length);
+        if (lines.length < 2) {
+          throw new Error('CSV needs a header row and at least one data row.');
+        }
+
+        const headerCells = splitCSVLine(lines[0]);
+        const columnMap = {};
+        headerCells.forEach((cell, i) => {
+          const key = normalizeHeader(cell);
+          if (key && columnMap[key] === undefined) columnMap[key] = i;
+        });
+
+        const metricKeys = Object.keys(METRICS).filter((k) => columnMap[k] !== undefined);
+        if (!metricKeys.length) {
+          throw new Error('No recognised columns. Expected headers like time, heart_rate, spo2, body_temp, co2_ppm.');
+        }
+
+        const rows = [];
+        for (let i = 1; i < lines.length; i++) {
+          const cells = splitCSVLine(lines[i]);
+          const values = {};
+          let hasData = false;
+
+          for (let m = 0; m < metricKeys.length; m++) {
+            const key = metricKeys[m];
+            const raw = cells[columnMap[key]];
+            const num = (raw === undefined || raw === '') ? NaN : Number(raw);
+            if (Number.isFinite(num)) {
+              values[key] = num;
+              hasData = true;
+            } else {
+              values[key] = null;
+            }
+          }
+
+          if (!hasData) continue;
+
+          const rawTime = columnMap.time !== undefined ? cells[columnMap.time] : '';
+          rows.push({
+            values: values,
+            timeLabel: formatTimeLabel(rawTime, rows.length)
+          });
+        }
+
+        if (!rows.length) throw new Error('No numeric data rows could be parsed.');
+
+        return { rows: rows, metrics: metricKeys };
+      }
+
+      function readFile(file) {
+        if (!file) return;
+        setStatus('scanning', 'Reading “' + file.name + '”…');
+        const reader = new FileReader();
+        reader.onload = function () {
+          try {
+            const parsed = parseCSV(String(reader.result));
+            loadData(parsed.rows, parsed.metrics, file.name);
+          } catch (err) {
+            setStatus('error', 'Could not read CSV: ' + err.message);
+            document.getElementById('stat-status').textContent = 'Error';
+          }
+        };
+        reader.onerror = function () {
+          setStatus('error', 'Could not read that file.');
+          document.getElementById('stat-status').textContent = 'Error';
+        };
+        reader.readAsText(file);
+      }
+
+      /* ============================================================
+         10. DEMO TELEMETRY GENERATOR
+      ============================================================ */
+      function generateDemoData(count) {
+        const n = count || 96;
+        const rows = [];
+
+        const events = {
+          14: { heart_rate: 142 },
+          26: { spo2: 87.4 },
+          41: { body_temp: 38.9 },
+          55: { co2_ppm: 4600 },
+          68: { heart_rate: 128, body_temp: 37.9 },
+          79: { co2_ppm: 3150 },
+          88: { body_temp: 35.1, heart_rate: 43 }
+        };
+
+        for (let i = 0; i < n; i++) {
+          let hr = 62 + Math.sin(i / 7) * 4 + rand(-2.5, 2.5);
+          let spo2 = 98.2 + Math.sin(i / 9) * 0.55 + rand(-0.25, 0.25);
+          let temp = 36.7 + Math.sin(i / 12) * 0.12 + rand(-0.05, 0.05);
+          let co2 = 780 + Math.sin(i / 6) * 90 + rand(-35, 35);
+
+          const ev = events[i];
+          if (ev) {
+            if (ev.heart_rate !== undefined) hr = ev.heart_rate + rand(-1.5, 1.5);
+            if (ev.spo2 !== undefined) spo2 = ev.spo2 + rand(-0.2, 0.2);
+            if (ev.body_temp !== undefined) temp = ev.body_temp + rand(-0.05, 0.05);
+            if (ev.co2_ppm !== undefined) co2 = ev.co2_ppm + rand(-60, 60);
+          }
+
+          if (i === 15) hr = 104 + rand(-3, 3);
+          if (i === 27) spo2 = 92.8 + rand(-0.3, 0.3);
+          if (i === 42) temp = 37.6 + rand(-0.1, 0.1);
+          if (i === 56) co2 = 2400 + rand(-80, 80);
+
+          rows.push({
+            values: {
+              heart_rate: round(hr, 1),
+              spo2: round(spo2, 1),
+              body_temp: round(temp, 2),
+              co2_ppm: Math.round(co2)
+            },
+            timeLabel: formatTimeLabel(i * 30, i)
+          });
+        }
+
+        return rows;
+      }
+
+      /* ============================================================
+         11. LOAD DATA → RESET UI → KICK OFF FIRST SCAN
+      ============================================================ */
+      function loadData(rows, metrics, sourceName) {
+        stopScan();
+
+        dataset.rows = rows;
+        dataset.metrics = metrics;
+        dataset.source = sourceName || '';
+        dataset.anomalies = detectAnomalies(rows, metrics);
+
+        document.querySelectorAll('.chart-card').forEach((card) => {
+          const canvas = card.querySelector('.chart-canvas');
+          if (!canvas) return;
+          const key = canvas.dataset.metric;
+          card.hidden = !(key && metrics.indexOf(key) !== -1);
+        });
+
+        document.getElementById('stat-records').textContent = String(rows.length);
+        document.getElementById('stat-metrics').textContent = String(metrics.length);
+        document.getElementById('stat-anomalies').textContent = '0';
+        document.getElementById('stat-status').textContent = 'Loaded';
+
+        setStatus('', 'Loaded ' + rows.length + ' records from ' +
+          (dataset.source || 'telemetry') + ' — starting first scan…');
+
+        startScan();
+      }
+
+      /* ============================================================
+         12. SAMPLE CSV DOWNLOAD
+      ============================================================ */
+      function buildSampleCSV() {
+        const rows = generateDemoData(96);
+        const cols = ['time', 'heart_rate', 'spo2', 'body_temp', 'co2_ppm'];
+        const lines = [cols.join(',')];
+
+        rows.forEach((r, i) => {
+          lines.push([
+            i * 30,
+            r.values.heart_rate,
+            r.values.spo2,
+            r.values.body_temp,
+            r.values.co2_ppm
+          ].join(','));
+        });
+
+        return lines.join('\n');
+      }
+
+      function downloadSample() {
+        const csv = buildSampleCSV();
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'health-e-demo-telemetry.csv';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+      }
+
+      /* ============================================================
+         13. EVENT WIRING
+      ============================================================ */
+      const csvInput = document.getElementById('csv-input');
+      const btnRescan = document.getElementById('btn-rescan');
+      const btnSample = document.getElementById('btn-sample');
+      const dropZone = document.getElementById('drop-zone');
+
+      // Clicking the header card triggers file upload
+      dropZone.addEventListener('click', (e) => {
+        if (e.target.closest('button')) return; // Ignore clicks on the buttons inside
+        csvInput.click();
       });
-    }
 
-    return rows;
-  }
+      csvInput.addEventListener('change', (e) => {
+        const file = e.target.files && e.target.files[0];
+        if (file) readFile(file);
+        csvInput.value = ''; // allow re-uploading the same file
+      });
 
-  /* ============================================================
-     11. LOAD DATA → RESET UI → KICK OFF FIRST SCAN
-  ============================================================ */
-  function loadData(rows, metrics, sourceName) {
-    stopScan();
+      btnRescan.addEventListener('click', () => {
+        if (!dataset.rows.length) {
+          setStatus('error', 'No telemetry loaded yet — upload a CSV first.');
+          return;
+        }
+        startScan();
+      });
 
-    dataset.rows = rows;
-    dataset.metrics = metrics;
-    dataset.source = sourceName || '';
-    dataset.anomalies = detectAnomalies(rows, metrics);
+      btnSample.addEventListener('click', downloadSample);
 
-    document.querySelectorAll('.chart-card').forEach((card) => {
-      const canvas = card.querySelector('.chart-canvas');
-      if (!canvas) return;
-      const key = canvas.dataset.metric;
-      card.hidden = !(key && metrics.indexOf(key) !== -1);
-    });
+      // --- drag & drop onto the header card ---
+      ['dragenter', 'dragover'].forEach((ev) => {
+        dropZone.addEventListener(ev, (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          dropZone.classList.add('is-dragover');
+        });
+      });
 
-    document.getElementById('stat-records').textContent = String(rows.length);
-    document.getElementById('stat-metrics').textContent = String(metrics.length);
-    document.getElementById('stat-anomalies').textContent = '0';
-    document.getElementById('stat-status').textContent = 'Loaded';
+      ['dragleave', 'drop'].forEach((ev) => {
+        dropZone.addEventListener(ev, (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          dropZone.classList.remove('is-dragover');
+        });
+      });
 
-    setStatus('', 'Loaded ' + rows.length + ' records from ' +
-                   (dataset.source || 'telemetry') + ' — starting first scan…');
+      dropZone.addEventListener('drop', (e) => {
+        const file = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+        if (file) readFile(file);
+      });
 
-    startScan();
-  }
+      window.addEventListener('resize', debounce(() => {
+        const visible = scanning ? revealedCount : dataset.rows.length;
+        drawAllCharts(visible);
+      }, 120));
 
-  /* ============================================================
-     12. SAMPLE CSV DOWNLOAD
-  ============================================================ */
-  function buildSampleCSV() {
-    const rows = generateDemoData(96);
-    const cols = ['time', 'heart_rate', 'spo2', 'body_temp', 'co2_ppm'];
-    const lines = [cols.join(',')];
+      /* ============================================================
+         14. INIT
+      ============================================================ */
+      function init() {
+        initCharts();
 
-    rows.forEach((r, i) => {
-      lines.push([
-        i * 30,
-        r.values.heart_rate,
-        r.values.spo2,
-        r.values.body_temp,
-        r.values.co2_ppm
-      ].join(','));
-    });
+        // Load saved mode from local storage
+        const savedMode = localStorage.getItem('healthEMode') || 'kid';
+        setMode(savedMode);
 
-    return lines.join('\n');
-  }
+        // Auto-load demo telemetry on first visit so the page demonstrates itself
+        if (!dataset.rows.length) {
+          autoLoaded = true;
+          loadData(generateDemoData(96), Object.keys(METRICS), 'Demo telemetry');
+        }
+      }
 
-  function downloadSample() {
-    const csv = buildSampleCSV();
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'health-e-demo-telemetry.csv';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
-  }
-
-  /* ============================================================
-     13. EVENT WIRING
-  ============================================================ */
-  const csvInput   = document.getElementById('csv-input');
-  const btnRescan  = document.getElementById('btn-rescan');
-  const btnSample  = document.getElementById('btn-sample');
-  const dropZone   = document.getElementById('drop-zone');
-
-  // Clicking the header card triggers file upload
-  dropZone.addEventListener('click', (e) => {
-    if (e.target.closest('button')) return; // Ignore clicks on the buttons inside
-    csvInput.click();
-  });
-
-  csvInput.addEventListener('change', (e) => {
-    const file = e.target.files && e.target.files[0];
-    if (file) readFile(file);
-    csvInput.value = ''; // allow re-uploading the same file
-  });
-
-  btnRescan.addEventListener('click', () => {
-    if (!dataset.rows.length) {
-      setStatus('error', 'No telemetry loaded yet — upload a CSV first.');
-      return;
-    }
-    startScan();
-  });
-
-  btnSample.addEventListener('click', downloadSample);
-
-  // --- drag & drop onto the header card ---
-  ['dragenter', 'dragover'].forEach((ev) => {
-    dropZone.addEventListener(ev, (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      dropZone.classList.add('is-dragover');
-    });
-  });
-
-  ['dragleave', 'drop'].forEach((ev) => {
-    dropZone.addEventListener(ev, (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      dropZone.classList.remove('is-dragover');
-    });
-  });
-
-  dropZone.addEventListener('drop', (e) => {
-    const file = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
-    if (file) readFile(file);
-  });
-
-  window.addEventListener('resize', debounce(() => {
-    const visible = scanning ? revealedCount : dataset.rows.length;
-    drawAllCharts(visible);
-  }, 120));
-
-  /* ============================================================
-     14. INIT
-  ============================================================ */
-  function init() {
-    initCharts();
-
-    // Load saved mode from local storage
-    const savedMode = localStorage.getItem('healthEMode') || 'kid';
-    setMode(savedMode);
-
-    // Auto-load demo telemetry on first visit so the page demonstrates itself
-    if (!dataset.rows.length) {
-      autoLoaded = true;
-      loadData(generateDemoData(96), Object.keys(METRICS), 'Demo telemetry');
-    }
-  }
-
-  init();
-})();
-</script>
+      init();
+    })();
+  </script>
 </body>
+
 </html>
